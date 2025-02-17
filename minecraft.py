@@ -172,7 +172,7 @@ if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.
 if not 'xp' in locals(): xp = 10
 running = True
 case_inventaire = 1
-if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 40
+if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 39 + ['bois']
 teleportation = False
 if not 'portail' in locals(): portail = None
 hearts = 9
@@ -542,10 +542,6 @@ def dessiner_inventaire(case_inventaire, inventaire):
             # Dessiner la bordure autour de la case
             pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
             pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
-            
-            # Mettre en évidence la case sélectionnée
-            if i + n*10 == case_inventaire - 1:
-                pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 2)
 
 
 
