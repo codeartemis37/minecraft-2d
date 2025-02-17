@@ -491,8 +491,8 @@ def dessiner_hotbar(case_inventaire, inventaire):
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
-    couleur_bordure = (100, 100, 100)  # Gris trÃ¨s foncé
-    couleur_bordure2 = (50, 50, 50)  # Gris trÃ¨s foncé
+    couleur_bordure = (100, 100, 100)  # Gris très foncé
+    couleur_bordure2 = (50, 50, 50)  # Gris encore plus foncé
     
     for i in range(nombre_cases):
         x = position_x_debut + (i * TAILLE_PIXEL)
@@ -501,39 +501,52 @@ def dessiner_hotbar(case_inventaire, inventaire):
         # Dessiner la case de l'inventaire
         pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
         try:
-            pygame.draw.rect(ecran, eval(inventaire[i].upper()), (x, y, TAILLE_PIXEL-5, TAILLE_PIXEL-5))
+            # Essayer de dessiner un rectangle coloré pour l'objet
+            pygame.draw.rect(ecran, eval(inventaire[i].upper()), (x+2, y+2, TAILLE_PIXEL-4, TAILLE_PIXEL-4))
         except:
-            ecran.blit(image(inventaire[i]), (x, y))
+            # Si ce n'est pas possible, afficher l'image de l'objet
+            ecran.blit(image(inventaire[i]), (x+2, y+2))
         
         # Dessiner la bordure autour de la case
-        pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 8)
-        pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 6)
-        if i == case_inventaire-1:
-            pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 5)
+        pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
+        pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
+        
+        # Mettre en évidence la case sélectionnée
+        if i == case_inventaire - 1:
+            pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 2)
 
 def dessiner_inventaire(case_inventaire, inventaire):
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
-    couleur_bordure = (100, 100, 100)  # Gris trÃ¨s foncé
-    couleur_bordure2 = (50, 50, 50)  # Gris trÃ¨s foncé
+    couleur_bordure = (100, 100, 100)  # Gris très foncé
+    couleur_bordure2 = (50, 50, 50)  # Gris encore plus foncé
+    
     for n in range(3):
         for i in range(nombre_cases):
             x = position_x_debut + (i * TAILLE_PIXEL)
-            y = HAUTEUR_ECRAN - (TAILLE_PIXEL * n+1)
+            y = HAUTEUR_ECRAN - (TAILLE_PIXEL * (n + 1))
             
             # Dessiner la case de l'inventaire
             pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
             try:
-                pygame.draw.rect(ecran, eval(inventaire[i].upper()), (x, y, TAILLE_PIXEL-5, TAILLE_PIXEL-5))
+                # Essayer de dessiner un rectangle coloré pour l'objet
+                pygame.draw.rect(ecran, eval(inventaire[i + n*10].upper()), (x+2, y+2, TAILLE_PIXEL-4, TAILLE_PIXEL-4))
+            except IndexError:
+                # Case vide, ne rien faire
+                pass
             except:
-                ecran.blit(image(inventaire[i]), (x, y))
+                # Si ce n'est pas possible, afficher l'image de l'objet
+                ecran.blit(image(inventaire[i + n*10]), (x+2, y+2))
             
             # Dessiner la bordure autour de la case
-            pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 8)
-            pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 6)
-            if i == case_inventaire-1:
-                pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 5)
+            pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
+            pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
+            
+            # Mettre en évidence la case sélectionnée
+            if i + n*10 == case_inventaire - 1:
+                pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 2)
+
 
 
 def afficher_xp(xp):
