@@ -531,13 +531,13 @@ def dessiner_inventaire(case_inventaire, inventaire):
             pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
             try:
                 # Essayer de dessiner un rectangle coloré pour l'objet
-                pygame.draw.rect(ecran, eval(inventaire[i + n*nombre_cases].upper()), (x+2, y+2, TAILLE_PIXEL-4, TAILLE_PIXEL-4))
+                pygame.draw.rect(ecran, eval(inventaire[i + nombre_cases + n*nombre_cases].upper()), (x+2, y+2, TAILLE_PIXEL-4, TAILLE_PIXEL-4))
             except IndexError:
                 # Case vide, ne rien faire
                 pass
             except:
                 # Si ce n'est pas possible, afficher l'image de l'objet
-                ecran.blit(image(inventaire[i + n*nombre_cases]), (x+2, y+2))
+                ecran.blit(image(inventaire[i + nombre_cases + n*nombre_cases]), (x+2, y+2))
             
             # Dessiner la bordure autour de la case
             pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
