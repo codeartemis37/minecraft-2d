@@ -487,7 +487,7 @@ def dessiner_map(decalage_x, decalage_y):
 
 
 
-def dessiner_inventaire(case_inventaire, inventaire):
+def dessiner_hotbar(case_inventaire, inventaire):
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
@@ -510,6 +510,30 @@ def dessiner_inventaire(case_inventaire, inventaire):
         pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 6)
         if i == case_inventaire-1:
             pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 5)
+
+def dessiner_inventaire(case_inventaire, inventaire):
+    nombre_cases = 10
+    largeur_totale = nombre_cases * TAILLE_PIXEL
+    position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
+    couleur_bordure = (100, 100, 100)  # Gris trÃ¨s foncé
+    couleur_bordure2 = (50, 50, 50)  # Gris trÃ¨s foncé
+    for n in range(3):
+        for i in range(nombre_cases):
+            x = position_x_debut + (i * TAILLE_PIXEL)
+            y = HAUTEUR_ECRAN - (TAILLE_PIXEL * n+1)
+            
+            # Dessiner la case de l'inventaire
+            pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
+            try:
+                pygame.draw.rect(ecran, eval(inventaire[i].upper()), (x, y, TAILLE_PIXEL-5, TAILLE_PIXEL-5))
+            except:
+                ecran.blit(image(inventaire[i]), (x, y))
+            
+            # Dessiner la bordure autour de la case
+            pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 8)
+            pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 6)
+            if i == case_inventaire-1:
+                pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 5)
 
 
 def afficher_xp(xp):
@@ -855,6 +879,7 @@ while running:
     dessiner_map(x - LARGEUR_ECRAN // 2, y - HAUTEUR_ECRAN // 2)
     dessiner_coeurs(hearts, 9, coeurs)
     dessiner_faim(bouffe_totale, 9, bouffe, effects_potions['poison']['durée'] > 0.1)
+    dessiner_hotbar(case_inventaire, inventaire)
     dessiner_inventaire(case_inventaire, inventaire)
     afficher_xp(xp)
     pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL / 2))
