@@ -933,4 +933,4 @@ print()
 print(compresser(f'[{hearts}, {x}, {y}, {inventaire}, {mobs}, {bouffe}, {vitesse}, {effects_potions}, {xp}]'))
 # Quitter Pygame proprement
 pygame.quit()
-input()
+while True: input("vous pouvez fermer la fenetre")
