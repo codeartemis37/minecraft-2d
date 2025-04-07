@@ -149,7 +149,7 @@ def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
                 if abs(dx) < 3 * TAILLE_PIXEL and abs(dy) < 3 * TAILLE_PIXEL:
                     break
                 testx, testy = randint(1, 40) * TAILLE_PIXEL, randint(1, 40) * TAILLE_PIXEL
-                if not bloc_pos_joueur(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in incassables:
+                if not bloc_pos(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in incassables:
                     mob.coords['x'] = testx
                     mob.coords['y'] = testy
             
@@ -162,15 +162,15 @@ def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
         est_araignee = mob.species == 'spider'
         
         # Déplacement horizontal
-        if dx > 0 and (est_araignee or not bloc_pos_joueur(centre_x + SPEED, centre_y) in incassables):
+        if dx > 0 and (est_araignee or not bloc_pos(centre_x + SPEED, centre_y) in incassables):
             mob.coords['x'] += SPEED
-        elif dx < 0 and (est_araignee or not bloc_pos_joueur(centre_x - SPEED, centre_y) in incassables):
+        elif dx < 0 and (est_araignee or not bloc_pos(centre_x - SPEED, centre_y) in incassables):
            mob.coords['x'] -= SPEED
         
         # Déplacement vertical
-        if dy > 0 and (est_araignee or not bloc_pos_joueur(centre_x, centre_y + SPEED) in incassables):
+        if dy > 0 and (est_araignee or not bloc_pos(centre_x, centre_y + SPEED) in incassables):
             mob.coords['y'] += SPEED
-        elif dy < 0 and (est_araignee or not bloc_pos_joueur(centre_x, centre_y - SPEED) in incassables):
+        elif dy < 0 and (est_araignee or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
             mob.coords['y'] -= SPEED
 
         # Débogage : Afficher les valeurs intermédiaires
@@ -326,7 +326,7 @@ def verifier_collision(x, y):
         return map[grid_y][grid_x] != 'bordure'
     return False
 
-def bloc_pos_joueur(x, y):
+def bloc_pos(x, y):
     # Convertir les coordonnées en indices de la grille
     grid_x = int(x / TAILLE_PIXEL)
     grid_y = int(y / TAILLE_PIXEL)
@@ -565,11 +565,11 @@ while running:
         saut -= 1
     else:
         if sens_de_gravite == 'bas':
-            if not bloc_pos_joueur(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
+            if not bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
                 y += vitesse
                 decalage_y += vitesse
         else:
-            if not bloc_pos_joueur(x + (TAILLE_PIXEL / 2), y - 1) in incassables:
+            if not bloc_pos(x + (TAILLE_PIXEL / 2), y - 1) in incassables:
                 y -= vitesse
                 decalage_y -= vitesse
 
