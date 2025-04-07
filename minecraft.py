@@ -517,6 +517,14 @@ decalage_x = 0
 decalage_y = 0
 running = True
 tick = 0
+# Définition des constantes
+GRAVITE = 0.5  # Accélération due à la gravité
+VITESSE_SAUT = 10  # Vitesse initiale du saut
+
+# Initialiser la vitesse verticale
+vitesse_verticale = 0
+
+# Boucle principale
 while running:
     tick += 1
     
@@ -527,13 +535,8 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            if event.key == pygame.K_e:
-                if sens_de_gravite == 'bas':
-                    sens_de_gravite = 'haut'
-                else:
-                    sens_de_gravite = 'bas'
-            if event.key == pygame.K_SPACE:
-                saut = 10
+            if event.key == pygame.K_SPACE and bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL + 1)) != "air":
+                vitesse_verticale = -VITESSE_SAUT  # Déclencher le saut
             if event.key == pygame.K_RIGHT:
                 case_inventaire += 1
             if event.key == pygame.K_LEFT:
@@ -551,17 +554,18 @@ while running:
     if keys[pygame.K_d]:
         x += vitesse
         decalage_x += vitesse
-        
-    # Gravité
-    if saut > 0:
-        y -= vitesse * 2
-        decalage_y -= vitesse * 2
-        saut -= 1
+    
+    
+    if bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) == "air":
+        # Appliquer la gravité
+        vitesse_verticale = min(vitesse_verticale + GRAVITE, 10)
+        y += vitesse_verticale
+        decalage_y += vitesse_verticale
     else:
-        if not bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
-            y += vitesse
-            decalage_y += vitesse
-
+        # Vérifier les collisions avec le sol
+        y = (y // TAILLE_PIXEL) * TAILLE_PIXEL  # Aligner le joueur sur la grille
+        vitesse_verticale = 0  # Arrêter la vitesse verticale
+    
     # Logique du jeu
     ecran.fill(CIEL)
     
@@ -589,7 +593,6 @@ while running:
     
     # Contrôle de la fréquence d'images
     clock.tick(60)
-
 
 font = pygame.font.Font(None, 36)
 ecran.blit((lambda s: (s.fill((50, 50, 50, 150)), s)[1])(pygame.Surface(ecran.get_size(), pygame.SRCALPHA)), (0, 0)) # Fond gris legerement transparent
