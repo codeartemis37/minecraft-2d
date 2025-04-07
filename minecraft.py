@@ -4,7 +4,7 @@ from random import *
 import math
 import zlib
 import base64
-from dataclass import dataclass
+from dataclasses import dataclass
 from typing import List, Dict
 
 # Initialisation de Pygame
@@ -19,6 +19,7 @@ TAILLE_PIXEL = 50
 
 @dataclass
 class Entity:
+    type: str
     id: int
     coords: dict
     hearts: int
@@ -32,17 +33,18 @@ class Mobs_default_by_species:
     hostility: bool
     xp: int
     speed: int
-    data: class Entity
 
-Mobs_default_by_species("creeper", 5, 5, ['gunpowder'], True, 5, 0.05, None)
-Mobs_default_by_species("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05, None)
-Mobs_default_by_species("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.05, None)
-Mobs_default_by_species("cochon", 5, 5, ['pork'], False, 5, 0.05, None)
-Mobs_default_by_species("cheval", 5, 5, ['cuir'], False, 5, 0.05, None)
-Mobs_default_by_species("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.05, None)
-Mobs_default_by_species("enderman", 5, 5, ['enderpearl'], True, 5, 0.05, None)
-Mobs_default_by_species("vache", 5, 5, ['cuir'], False, 5, 0.05, None)
-Entity(0, {"x": 200, "y": 200}, 5)
+Mobs_default_by_species("creeper", 5, 5, ['gunpowder'], True, 5, 0.05),
+Mobs_default_by_species("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05),
+Mobs_default_by_species("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.05),
+Mobs_default_by_species("cochon", 5, 5, ['pork'], False, 5, 0.05),
+Mobs_default_by_species("cheval", 5, 5, ['cuir'], False, 5, 0.05),
+Mobs_default_by_species("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.05),
+Mobs_default_by_species("enderman", 5, 5, ['enderpearl'], True, 5, 0.05),
+Mobs_default_by_species("vache", 5, 5, ['cuir'], False, 5, 0.05)
+mobs = [
+    Entity("creeper", 0, {"x": 200, "y": 200}, 5)
+]
 
 
 def compresser(texte):
@@ -637,95 +639,88 @@ while running:
     
     keys = pygame.key.get_pressed()
     nouvelle_x, nouvelle_y = x, y
-    
-    if not teleportation:
-        if keys[pygame.K_LEFT]: nouvelle_x -= vitesse
-        if keys[pygame.K_RIGHT]: nouvelle_x += vitesse
-        if keys[pygame.K_DOWN]: nouvelle_y += vitesse
-        
-        # Sauter et tomber
-        if bloc_pos_joueur(nouvelle_x, nouvelle_y + TAILLE_PIXEL) == 'air':
-            if saut == 0:
-                nouvelle_y += vitesse  # Si le joueur n'est pas sur un bloc et ne saute pas, tomber
-                degats_de_chute += 1
-            else:
-                nouvelle_y -= vitesse  # Continuer Ã  monter si le saut est en cours
-                saut -= 1
+    if keys[pygame.K_LEFT]: nouvelle_x -= vitesse
+    if keys[pygame.K_RIGHT]: nouvelle_x += vitesse
+    if keys[pygame.K_DOWN]: nouvelle_y += vitesse
+
+    # Sauter et tomber
+    if bloc_pos_joueur(nouvelle_x, nouvelle_y + TAILLE_PIXEL) == 'air':
+        if saut == 0:
+            nouvelle_y += vitesse  # Si le joueur n'est pas sur un bloc et ne saute pas, tomber
+            degats_de_chute += 1
         else:
-            if degats_de_chute > 2 and not bloc_pos_joueur(nouvelle_x, nouvelle_y + TAILLE_PIXEL) in blocs_amortisseurs:
-                coeurs -= calcul_degats_de_chute(degats_de_chute) # Appliquer les dégÃ¢ts de chute
-            degats_de_chute = 0
-        
-            if keys[pygame.K_UP] and saut == 0:
-                saut = 3 * int(TAILLE_PIXEL / vitesse)  # Initialiser le saut
-
-        if saut > 0:
-            nouvelle_y -= vitesse  # Monter si le saut est en cours
+            nouvelle_y -= vitesse  # Continuer Ã  monter si le saut est en cours
             saut -= 1
-        
-        
-        # Vérifier les collisions avant de mettre Ã  jour la position
-        if verifier_collision(nouvelle_x, y):
-            x = nouvelle_x
-        if verifier_collision(x, nouvelle_y):
-            y = nouvelle_y
-
-        # Assurer que le joueur reste dans les limites de la carte
-        x = max(TAILLE_PIXEL, min(x, (LARGEUR_MAP - 2) * TAILLE_PIXEL))
-        y = max(TAILLE_PIXEL, min(y, (HAUTEUR_MAP - 2) * TAILLE_PIXEL))
-
-        bloc_actuel = bloc_pos_joueur(x, y)
-        if keys[pygame.K_SPACE] and bloc_actuel not in incassables:
-            if bloc_actuel not in necessite:
-                if bloc_actuel in modify_bloc_to_item: bloc_actuel = modify_bloc_to_item[bloc_actuel]
-                for i, case in enumerate(inventaire):
-                    if case == 'inventaire_vide':
-                        inventaire[i] = bloc_actuel
-                        modify(x, y, 'air')
-                        if [int(x / TAILLE_PIXEL), int(y / TAILLE_PIXEL)] == [5,HAUTEUR_MAP-3]:
-                           map[-2][3] = 'air'
-                           map[-3][3] = 'air'
-                           map[-4][3] = 'air'
-                           map[-2][2] = 'air'
-                           map[-3][2] = 'air'
-                           map[-4][2] = 'air'
-                           map[-2][1] = 'air'
-                           map[-3][1] = 'air'
-                           map[-4][1] = 'air'
-                        if [int(x / TAILLE_PIXEL), int(y / TAILLE_PIXEL)] == [9, HAUTEUR_MAP-3]:
-                           map[-3][7] = 'air'
-                        break
-            elif inventaire[case_inventaire-1] == necessite[bloc_actuel][0]:
-                for i, case in enumerate(inventaire):
-                    if case == 'inventaire_vide':
-                        inventaire[i] = bloc_actuel
-                        modify(x, y, 'air')
-                        break
-            else:
-                for i, case in enumerate(inventaire):
-                    if case == 'inventaire_vide':
-                        inventaire[i] = necessite[bloc_actuel][1]
-                        modify(x, y, 'air')
-                        break
-        if keys[pygame.K_a] and inventaire[case_inventaire-1] != 'inventaire_vide' and bloc_actuel == 'air':
-            modify(x, y, inventaire[case_inventaire-1])
-            inventaire[case_inventaire-1] = 'inventaire_vide'
-        if keys[pygame.K_f] and inventaire[case_inventaire-1] in mangeable:
-            bouffe += mangeable[inventaire[case_inventaire-1]][0]
-            try:
-                if randint(1, mangeable[inventaire[case_inventaire-1]][1]) == 1:
-                    effects_potions['poison']['durée'] = 5.0
-            except:
-                pass
-            inventaire[case_inventaire-1] = 'inventaire_vide'
-
-        if keys[pygame.K_e]:
-            actions_e()
     else:
-        # Sortir de l'état de téléportation lorsque la touche est relÃ¢chée
-        teleportation = keys[pygame.K_e]
-    map[-3][5] = craft(' '.join(['-'.join(key) for key in inventory(map)]))
-    map[-3][9] = cuire(map[-3][7])
+        if degats_de_chute > 2 and not bloc_pos_joueur(nouvelle_x, nouvelle_y + TAILLE_PIXEL) in blocs_amortisseurs:
+            coeurs -= calcul_degats_de_chute(degats_de_chute) # Appliquer les dégÃ¢ts de chute
+        degats_de_chute = 0
+
+        if keys[pygame.K_UP] and saut == 0:
+            saut = 3 * int(TAILLE_PIXEL / vitesse)  # Initialiser le saut
+
+    if saut > 0:
+        nouvelle_y -= vitesse  # Monter si le saut est en cours
+        saut -= 1
+
+
+    # Vérifier les collisions avant de mettre Ã  jour la position
+    if verifier_collision(nouvelle_x, y):
+        x = nouvelle_x
+    if verifier_collision(x, nouvelle_y):
+        y = nouvelle_y
+
+    # Assurer que le joueur reste dans les limites de la carte
+    x = max(TAILLE_PIXEL, min(x, (LARGEUR_MAP - 2) * TAILLE_PIXEL))
+    y = max(TAILLE_PIXEL, min(y, (HAUTEUR_MAP - 2) * TAILLE_PIXEL))
+
+    bloc_actuel = bloc_pos_joueur(x, y)
+    if keys[pygame.K_SPACE] and bloc_actuel not in incassables:
+        if bloc_actuel not in necessite:
+            if bloc_actuel in modify_bloc_to_item: bloc_actuel = modify_bloc_to_item[bloc_actuel]
+            for i, case in enumerate(inventaire):
+                if case == 'inventaire_vide':
+                    inventaire[i] = bloc_actuel
+                    modify(x, y, 'air')
+                    if [int(x / TAILLE_PIXEL), int(y / TAILLE_PIXEL)] == [5,HAUTEUR_MAP-3]:
+                       map[-2][3] = 'air'
+                       map[-3][3] = 'air'
+                       map[-4][3] = 'air'
+                       map[-2][2] = 'air'
+                       map[-3][2] = 'air'
+                       map[-4][2] = 'air'
+                       map[-2][1] = 'air'
+                       map[-3][1] = 'air'
+                       map[-4][1] = 'air'
+                    if [int(x / TAILLE_PIXEL), int(y / TAILLE_PIXEL)] == [9, HAUTEUR_MAP-3]:
+                       map[-3][7] = 'air'
+                    break
+        elif inventaire[case_inventaire-1] == necessite[bloc_actuel][0]:
+            for i, case in enumerate(inventaire):
+                if case == 'inventaire_vide':
+                    inventaire[i] = bloc_actuel
+                    modify(x, y, 'air')
+                    break
+        else:
+            for i, case in enumerate(inventaire):
+                if case == 'inventaire_vide':
+                    inventaire[i] = necessite[bloc_actuel][1]
+                    modify(x, y, 'air')
+                    break
+    if keys[pygame.K_a] and inventaire[case_inventaire-1] != 'inventaire_vide' and bloc_actuel == 'air':
+        modify(x, y, inventaire[case_inventaire-1])
+        inventaire[case_inventaire-1] = 'inventaire_vide'
+    if keys[pygame.K_f] and inventaire[case_inventaire-1] in mangeable:
+        bouffe += mangeable[inventaire[case_inventaire-1]][0]
+        try:
+            if randint(1, mangeable[inventaire[case_inventaire-1]][1]) == 1:
+                effects_potions['poison']['durée'] = 5.0
+        except:
+            pass
+        inventaire[case_inventaire-1] = 'inventaire_vide'
+
+    if keys[pygame.K_e]:
+        actions_e()
     mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)# Parcourt la liste des mobs avec leur index
     for i, mob in enumerate(mobs):
         if bloc_pos_joueur(mob['x'], mob['y'] + TAILLE_PIXEL) == 'air':
@@ -758,8 +753,6 @@ while running:
             # Si le mob est un creeper, le supprime de la liste
             if mob['name'] == 'creeper':
                 del mobs[i]
-        #print(int(mob['x'] / TAILLE_PIXEL), int(mob['y'] / TAILLE_PIXEL))
-        #print(map[int(mob['x'] / TAILLE_PIXEL)][int(mob['y'] / TAILLE_PIXEL)])
     for i_drop, drop in enumerate(drops):
         if keys[pygame.K_SPACE] and abs(x - drop['x']) <= TAILLE_PIXEL and abs(y - drop['y']) <= TAILLE_PIXEL:
             for i, case in enumerate(inventaire):
@@ -786,7 +779,7 @@ while running:
             effects_potions[key]['durée'] = 5.0
         if not element['durée'] <= 0.0:
             effects_potions[key]['durée'] -= 0.01
-            afficher_effets(key, f'{int(element['durée']*10)/10} tick', i, image(key))
+            afficher_effets(key, f"{int(element['durée']*10)/10} tick", i, image(key))
 
     if not jour:
         overlay_nuit()
