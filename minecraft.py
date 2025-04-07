@@ -18,41 +18,67 @@ HAUTEUR_MAP = 50
 TAILLE_PIXEL = 50
 
 @dataclass
-class Entity:
-    type: str
-    id: int
-    coords: dict
-    hearts: int
-
-@dataclass
-class Mobs_default_by_species:
+class MobsDefaultBySpecies:
     species: str
     base_hearts: int
-    strenght_attack: int
-    loot: list
+    strength_attack: int
+    loot: List[str]
     hostility: bool
     xp: int
-    speed: int
+    speed: float
 
-Mobs_default_by_species("creeper", 5, 5, ['gunpowder'], True, 5, 0.05),
-Mobs_default_by_species("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05),
-Mobs_default_by_species("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.05),
-Mobs_default_by_species("cochon", 5, 5, ['pork'], False, 5, 0.05),
-Mobs_default_by_species("cheval", 5, 5, ['cuir'], False, 5, 0.05),
-Mobs_default_by_species("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.05),
-Mobs_default_by_species("enderman", 5, 5, ['enderpearl'], True, 5, 0.05),
-Mobs_default_by_species("vache", 5, 5, ['cuir'], False, 5, 0.05)
+@dataclass
+class Entity:
+    species: str
+    id: int
+    coords: Dict[str, int]
+    hearts: int
+    strength_attack: int
+    loot: List[str]
+    hostility: bool
+    xp: int
+    speed: float
+
+    @classmethod
+    def from_species(cls, species_data: MobsDefaultBySpecies, id: int, coords: Dict[str, int]):
+        """Crée une entité à partir des données par défaut d'une espèce."""
+        return cls(
+            species=species_data.species,
+            id=id,
+            coords=coords,
+            hearts=species_data.base_hearts,
+            strength_attack=species_data.strength_attack,
+            loot=species_data.loot,
+            hostility=species_data.hostility,
+            xp=species_data.xp,
+            speed=species_data.speed,
+        )
+
+# Instances de MobsDefaultBySpecies
+creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.05)
+zombie = MobsDefaultBySpecies("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05)
+spider = MobsDefaultBySpecies("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.05)
+cochon = MobsDefaultBySpecies("cochon", 5, 5, ['pork'], False, 5, 0.05)
+cheval = MobsDefaultBySpecies("cheval", 5, 5, ['cuir'], False, 5, 0.05)
+mouton = MobsDefaultBySpecies("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.05)
+enderman = MobsDefaultBySpecies("enderman", 5, 5, ['enderpearl'], True, 5, 0.05)
+vache = MobsDefaultBySpecies("vache", 5, 5, ['cuir'], False, 5, 0.05)
+
+# Création des entités à partir des espèces par défaut
 mobs = [
-    Entity("creeper", 0, {"x": 200, "y": 200}, 5)
+    Entity.from_species(creeper, id=0, coords={"x": 200, "y": 200}),
+    Entity.from_species(zombie, id=1, coords={"x": 150, "y": 300}),
+    Entity.from_species(spider, id=2, coords={"x": 100, "y": 400}),
 ]
+
 
 
 def compresser(texte):
     # Compresser le texte en utilisant zlib
     donnees_compressees = zlib.compress(texte.encode('utf-8'))
-    # Encoder les données compressées en Base64 pour garantir des caractÃ¨res imprimables
+    # Encoder les données compressées en Base64 pour garantir des caractères imprimables
     donnees_base64 = base64.b64encode(donnees_compressees)
-    # Convertir les données encodées en une chaÃ®ne de caractÃ¨res
+    # Convertir les données encodées en une chaîne de caractères
     return donnees_base64.decode('utf-8')
 
 def decompresser(texte_compresse):
@@ -60,7 +86,7 @@ def decompresser(texte_compresse):
     donnees_base64 = base64.b64decode(texte_compresse.encode('utf-8'))
     # Décompresser les données en utilisant zlib
     donnees_decompressees = zlib.decompress(donnees_base64)
-    # Convertir les données décompressées en une chaÃ®ne de caractÃ¨res
+    # Convertir les données décompressées en une chaîne de caractères
     return donnees_decompressees.decode('utf-8')
 
 chaine = input('>>>')
@@ -106,83 +132,96 @@ from random import randint
 
 def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
     for mob in mobs:
-        SPEED = mobs_to_speed[mob['name']]  # Vitesse constante du mob
-        print(mob['name'], SPEED)
+        SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
+        print(mob.species, SPEED)
         
         # Convertir les coordonnées du joueur en unités de la grille
         player_x = x
         player_y = y
         
-        if mob['name'] == 'enderman' and tick % mob['tick'] == 0:
+        if mob.species == 'enderman' and tick % 60 == 0:
             i = 0
             while i < 50:
                 i += 1
                 # Calculer la direction vers le joueur
-                dx = player_x - mob['x']
-                dy = player_y - mob['y']
+                dx = player_x - mob.coords['x']
+                dy = player_y - mob.coords['y']
                 if abs(dx) < 3 * TAILLE_PIXEL and abs(dy) < 3 * TAILLE_PIXEL:
                     break
                 testx, testy = randint(1, 40) * TAILLE_PIXEL, randint(1, 40) * TAILLE_PIXEL
                 if not bloc_pos_joueur(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in incassables:
-                    mob['x'] = testx
-                    mob['y'] = testy
+                    mob.coords['x'] = testx
+                    mob.coords['y'] = testy
             
         # Calculer la direction vers le joueur
-        dx = player_x - mob['x']
-        dy = player_y - mob['y']
+        dx = player_x - mob.coords['x']
+        dy = player_y - mob.coords['y']
         
-        centre_x = mob['x'] + (TAILLE_PIXEL / 2)
-        centre_y = mob['y'] + (TAILLE_PIXEL / 2)
-        est_araignee = mob['name'] == 'spider'
+        centre_x = mob.coords['x'] + (TAILLE_PIXEL / 2)
+        centre_y = mob.coords['y'] + (TAILLE_PIXEL / 2)
+        est_araignee = mob.species == 'spider'
         
         # Déplacement horizontal
         if dx > 0 and (est_araignee or not bloc_pos_joueur(centre_x + SPEED, centre_y) in incassables):
-            mob['x'] += SPEED
+            mob.coords['x'] += SPEED
         elif dx < 0 and (est_araignee or not bloc_pos_joueur(centre_x - SPEED, centre_y) in incassables):
-           mob['x'] -= SPEED
+           mob.coords['x'] -= SPEED
         
         # Déplacement vertical
         if dy > 0 and (est_araignee or not bloc_pos_joueur(centre_x, centre_y + SPEED) in incassables):
-            mob['y'] += SPEED
+            mob.coords['y'] += SPEED
         elif dy < 0 and (est_araignee or not bloc_pos_joueur(centre_x, centre_y - SPEED) in incassables):
-            mob['y'] -= SPEED
+            mob.coords['y'] -= SPEED
 
-    # Débogage : Afficher les valeurs intermédiaires
-    #print(f"Player position: ({x}, {y})")
-    #print(f"dx: {dx}, dy: {dy}")
-    #print(f"New mob position: ({mob['x']}, {mob['y']})")
-    #print(mobs)
+        # Débogage : Afficher les valeurs intermédiaires
+        #print(f"Player position: ({x}, {y})")
+        #print(f"dx: {dx}, dy: {dy}")
+        #print(f"New mob position: ({mob.coords['x']}, {mob.coords['y']})")
+        #print(mob)
     return mobs
 
+def creer_map():
+    # Initialisation de la carte avec des 'air'
+    map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
+    
+    # Ajout des bordures en haut et en bas
+    map[0] = ['bordure' for _ in range(LARGEUR_MAP)]
+    map[-1] = ['bordure' for _ in range(LARGEUR_MAP)]
+    
+    # Ajout des bordures Ãƒ  gauche et Ãƒ  droite
+    for i in range(HAUTEUR_MAP):
+        map[i][0] = 'bordure'
+        map[i][-1] = 'bordure'
+        
+    
+    # Stuff de base
+    map[1][1] = 'coffre'
+    map[1][2] = 'etabli'
+    map[1][3] = 'furnace_burned'
+    
+    # Arbre
+    def arbre(x, y):
+        map[y+1][x] = 'bois'
+        map[y][x] = 'bois'
+        map[y-1][x] = 'bois'
+        map[y-2][x] = 'bois'
+        map[y-2][x-1] = 'leaves'
+        map[y-2][x] = 'leaves'
+        map[y-2][x+1] = 'leaves'
+        map[y-3][x] = 'leaves'
+    
+    arbre(6, 5)
+    arbre(7, 5)
+    arbre(14, 20)
+    arbre(15, 20)
+    arbre(9, 25)
+    arbre(10, 25)
+    
+    print(map)
+    return map
 def craft(valeur_recherchee):
     craft_table = {
-        'bois-air-air air-air-air air-air-air': 'planche',
-        'air-bois-air air-air-air air-air-air': 'planche',
-        'air-air-bois air-air-air air-air-air': 'planche',
-        'air-air-air bois-air-air air-air-air': 'planche',
-        'air-air-air air-bois-air air-air-air': 'planche',
-        'air-air-air air-air-bois air-air-air': 'planche',
-        'air-air-air air-air-air bois-air-air': 'planche',
-        'air-air-air air-air-air air-bois-air': 'planche',
-        'air-air-air air-air-air air-air-bois': 'planche',
-        'planche-planche-planche planche-air-planche planche-planche-planche': 'coffre',
-        'planche-planche-air planche-planche-air air-air-air': 'etabli',
-        'air-air-air planche-planche-air planche-planche-air': 'etabli',
-        'air-air-air air-planche-planche air-planche-planche': 'etabli',
-        'air-planche-planche air-planche-planche air-air-air': 'etabli',
-        'pierre-pierre-pierre pierre-air-pierre-pierre-pierre-pierre': 'fourneau',
-        'air-pepite_fer-air pepite_fer-air-air air-air-air': 'cisailles',
-        'air-air-pepite_fer air-pepite_fer-air air-air-air': 'cisailles',
-        'air-air-air air-pepite_fer-air pepite_fer-air-air': 'cisailles',
-        'air-air-air air-air-pepite_fer air-pepite_fer-air': 'cisailles',
-        'planche-air-air planche-air-air air-air-air': 'stick',
-        'air-planche-air air-planche-air air-air-air': 'stick',
-        'air-air-planche air-air-planche air-air-air': 'stick',
-        'air-air-air planche-air-air planche-air-air': 'stick',
-        'air-air-air air-planche-air air-planche-air': 'stick',
-        'air-air-air air-air-planche air-air-planche': 'stick',
-        'air-air-air laine-laine-laine planche-planche-planche': 'lit',
-        'laine-laine-laine planche-planche-planche air-air-air': 'lit'
+        
     }
     try:
         return craft_table[valeur_recherchee]
@@ -201,12 +240,7 @@ def cuire(valeur_recherchee):
         return furnace_table [valeur_recherchee]
     except:
         pass
-    return 'air'  # Retourne None si aucune correspondance n'est trouvée
-
-
-
-
-def creer_map():
+    return 'air'  # Retourne None si aucune correspondance n'est trouvée... def creer_map():
     # Initialisation de la carte avec des 'air'
     map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
     
@@ -218,25 +252,7 @@ def creer_map():
     for i in range(HAUTEUR_MAP):
         map[i][0] = 'bordure'
         map[i][-1] = 'bordure'
-    
-    # Ajout des bordures spécifiques
-    for i in range(2, LARGEUR_MAP):
-        map[-5][i] = 'bordure'
-    
-    # Etabli
-    map[-4][5] = 'sortie'
-    map[-4][6] = 'bordure'
-    map[-3][6] = 'bordure'
-    map[-2][6] = 'bordure'
-    
-    # Furnace
-    map[-4][9] = 'sortie'
-    map[-4][10] = 'bordure'
-    map[-3][10] = 'bordure'
-    map[-2][10] = 'bordure'
-    
-    # Coffre
-    map[-4][11] = 'sortie'
+        
     
     # Stuff de base
     map[1][1] = 'coffre'
@@ -290,7 +306,7 @@ image_cache = {}
 def image(texte):
     # Charger l'image
     if texte not in image_cache:
-        image_cache[texte] = pygame.image.load(fr"C:\Users\Killian\Desktop\minecraft\images\{texte}.jpg")
+        image_cache[texte] = pygame.image.load(fr"C:\Users\Rectorat\Downloads\minecraft-2d-master\minecraft-2d-master\images\{texte}.jpg")
         image_cache[texte] = pygame.transform.scale(image_cache[texte], (TAILLE_PIXEL, TAILLE_PIXEL))
     # Redimensionner l'image Ã  la taille du bloc
     return image_cache[texte]
@@ -355,9 +371,9 @@ def dessiner_map(decalage_x, decalage_y):
     
     # Dessin des mobs
     for mob in mobs:
-        x_mob = int(mob['x'] - decalage_x)
-        y_mob = int(mob['y'] - decalage_y)
-        image_mob = image(mob['name'])
+        x_mob = int(mob.coords['x'] - decalage_x)
+        y_mob = int(mob.coords['y'] - decalage_y)
+        image_mob = image(mob.species)
         
         ecran.blit(image_mob, (x_mob, y_mob))
         
@@ -367,16 +383,13 @@ def dessiner_map(decalage_x, decalage_y):
         bar_x = x_mob
         bar_y = y_mob + image_mob.get_height() - 5
         
-        draw_health_bar(ecran, bar_x, bar_y, mob['vie'], mob['vie_totale'], bar_width, bar_height)
+        draw_health_bar(ecran, bar_x, bar_y, mob.hearts, 5, bar_width, bar_height)
     
     # Dessin des drops
     for drop in drops:
         x_drop = int(drop['x'] - decalage_x)
         y_drop = int(drop['y'] - decalage_y)
         ecran.blit(image(drop['name']), (x_drop, y_drop))
-
-
-
 
 def dessiner_hotbar(case_inventaire, inventaire):
     nombre_cases = 10
@@ -433,8 +446,6 @@ def dessiner_inventaire(case_inventaire, inventaire):
             # Dessiner la bordure autour de la case
             pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
             pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
-
-
 
 def afficher_xp(xp):
     niveau, xp_actuel = divmod(xp, 10)
@@ -500,326 +511,95 @@ def dessiner_coeurs(nombre_coeurs, nombre_cases_inventaire, vies):
         
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
-
-def dessiner_faim(nombre_bouffe, nombre_cases_inventaire, bouffe, poisonned):
-    # Charger l'image du bouffe
-    image_bouffe = image('bouffe')
-    image_demi_bouffe = image('demi_bouffe')
-    image_bouffe_vide = image('bouffe_vide')
-    
-    largeur_totale = nombre_cases_inventaire * TAILLE_PIXEL
-    position_x_debut = (LARGEUR_ECRAN - largeur_totale) + TAILLE_PIXEL * 1.5
-    if bouffe <= 0:
-        position_x_debut += randint(-5, 5)
-    y_bouffe = HAUTEUR_ECRAN - 2 * TAILLE_PIXEL  # Juste au-dessus de l'inventaire
-    if bouffe <= 0:
-        y_bouffe += randint(-5, 5)
-    
-    bouffe_pleins = int(bouffe)
-    demi_bouffe = bouffe % 1 > 0
-    bouffe_vides = nombre_bouffe - bouffe_pleins - (1 if demi_bouffe else 0)
-    
-    for i in range(nombre_bouffe):
-        x_bouffe = position_x_debut - (i * int(TAILLE_PIXEL/2))
-        if i < bouffe_pleins:
-            image_a_afficher = image_bouffe
-        elif i == bouffe_pleins and demi_bouffe:
-            image_a_afficher = image_demi_bouffe
-        else:
-            image_a_afficher = image_bouffe_vide
-        
-        ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_bouffe, y_bouffe))
-        if poisonned:
-            # Ajout de la teinte rouge semi-transparente
-            overlay = pygame.Surface((int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2)), pygame.SRCALPHA)
-            overlay.fill((0, 64, 0, 64))  # Rouge avec alpha 64 (25% opaque)
-            ecran.blit(overlay, (x_bouffe, y_bouffe), special_flags=pygame.BLEND_RGBA_ADD)
-
-def attaque_speciale(mob):
-    global map
-    if mob['name'] == 'creeper':
-        for n in [-1, 0, 1]:
-            for o in [-1, 0, 1]:
-                if not bloc_pos_joueur(mob['x'] + (n * TAILLE_PIXEL), mob['y'] + (o * TAILLE_PIXEL)) in ['bordure']:
-                    modify(int(mob['x'] + (n * TAILLE_PIXEL)), int(mob['y'] + (o * TAILLE_PIXEL)), 'air')
-        for i, _mob in enumerate(mobs):
-            if abs(_mob['x'] - mob['x']) <= TAILLE_PIXEL * 2 and abs(_mob['y'] - mob['y']) <= TAILLE_PIXEL * 2:
-                del mobs[i]
-
-def afficher_effets(msg, duree, i, icone):
-    font = pygame.font.Font(None, 24)
-    texte_effet = font.render(msg, True, (255, 255, 255))
-    texte_duree = font.render(duree, True, (170, 170, 170))
-    
-    largeur = max(texte_effet.get_width(), texte_duree.get_width()) + icone.get_width() + 20
-    hauteur = max(40, icone.get_height() + 10)
-    
-    x = LARGEUR_ECRAN - largeur - 5
-    y = i * (hauteur + 5) + 5
-    rect = pygame.Rect(x, y, largeur, hauteur)
-    
-    # Dessiner le bouton
-    pygame.draw.rect(ecran, (10, 10, 10), rect.inflate(4, 4))
-    pygame.draw.rect(ecran, (60, 60, 60), rect)
-    pygame.draw.line(ecran, (100, 100, 100), rect.topleft, rect.topright)
-    pygame.draw.line(ecran, (100, 100, 100), rect.topleft, rect.bottomleft)
-    pygame.draw.line(ecran, (40, 40, 40), rect.bottomleft, rect.bottomright)
-    pygame.draw.line(ecran, (40, 40, 40), rect.topright, rect.bottomright)
-    
-    # Afficher l'icÃ´ne et le texte
-    ecran.blit(icone, (rect.left + 5, rect.centery - icone.get_height() // 2))
-    ecran.blit(texte_effet, (rect.left + icone.get_width() + 10, rect.top + 5))
-    ecran.blit(texte_duree, (rect.left + icone.get_width() + 10, rect.bottom - texte_duree.get_height() - 5))
-
-
-def afficher_overlay_texte(screen, texte, font_size=24, color=(255, 255, 255), bg_color=(0, 0, 0, 128)):
-    font = pygame.font.Font(None, font_size)
-    lines = texte.split('\n')
-    overlay_surface = pygame.Surface((LARGEUR_ECRAN, HAUTEUR_ECRAN), pygame.SRCALPHA)
-    overlay_surface.fill(bg_color)
-    
-    y_offset = 50  # Début du texte
-    for line in lines:
-        text_surface = font.render(line, True, color)
-        text_rect = text_surface.get_rect(center=(LARGEUR_ECRAN// 2, y_offset))
-        overlay_surface.blit(text_surface, text_rect)
-        y_offset += font_size + font_size // 2  # Espacement entre les lignes
-
-    screen.blit(overlay_surface, (0, 0))
-
-
-
-def actions_e():
-    global x, y, portail, teleportation, tick, bouffe
-    if bloc_actuel == 'lit':
-        tick = 0
-        bouffe = 15
-    elif bloc_actuel == 'etabli':
-        portail = (x, y)
-        x, y = (1) * TAILLE_PIXEL, (LARGEUR_MAP - 2) * TAILLE_PIXEL
-        teleportation = True
-    elif bloc_actuel == 'sortie' and portail:
-        x, y = portail
-        teleportation = True
-    elif bloc_actuel == 'coffre':
-        portail = (x, y)
-        x, y = (11) * TAILLE_PIXEL, (LARGEUR_MAP - 2) * TAILLE_PIXEL
-        teleportation = True
-    elif bloc_actuel == 'furnace_burned':
-        portail = (x, y)
-        x, y = (7) * TAILLE_PIXEL, (LARGEUR_MAP - 2) * TAILLE_PIXEL
-        teleportation = True
-
-def calcul_degats_de_chute(degats_de_chute):
-    return int((degats_de_chute - 2) / 100)
-
-def overlay_nuit():
-    # Ajout de la teinte grise semi-transparente
-    overlay = pygame.Surface([LARGEUR_ECRAN, HAUTEUR_ECRAN], pygame.SRCALPHA)
-    overlay.fill((CIEL_SOIR[0], CIEL_SOIR[1], CIEL_SOIR[2], 128))  # gris avec alpha 128 (50% opaque)
-    # Blitter l'overlay sur l'écran
-    ecran.blit(overlay, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
-
-# Position initiale du joueur
-if not 'x' in locals() and not 'y' in locals():
-    x, y = (5 * TAILLE_PIXEL), (5 * TAILLE_PIXEL)
-
-
+# Boucle principale
+x = 200
+y = 200
+decalage_x = 0
+decalage_y = 0
+running = True
+sens_de_gravite = 'bas'
 tick = 0
 while running:
     tick += 1
+    
+    # Gestion des événements
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if pygame.K_1 <= event.key <= pygame.K_9:
-                case_inventaire = event.key - pygame.K_0
-            elif event.key == pygame.K_0:
-                case_inventaire = 10
-    
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            if event.key == pygame.K_e:
+                if sens_de_gravite == 'bas':
+                    sens_de_gravite = 'haut'
+                else:
+                    sens_de_gravite = 'bas'
+            if event.key == pygame.K_SPACE:
+                saut = 10
+            if event.key == pygame.K_RIGHT:
+                case_inventaire += 1
+            if event.key == pygame.K_LEFT:
+                case_inventaire -= 1
+    if case_inventaire > 10:
+        case_inventaire = 1
+    if case_inventaire < 1:
+        case_inventaire = 10
     keys = pygame.key.get_pressed()
-    nouvelle_x, nouvelle_y = x, y
-    if keys[pygame.K_LEFT]: nouvelle_x -= vitesse
-    if keys[pygame.K_RIGHT]: nouvelle_x += vitesse
-    if keys[pygame.K_DOWN]: nouvelle_y += vitesse
-
-    # Sauter et tomber
-    if bloc_pos_joueur(nouvelle_x, nouvelle_y + TAILLE_PIXEL) == 'air':
-        if saut == 0:
-            nouvelle_y += vitesse  # Si le joueur n'est pas sur un bloc et ne saute pas, tomber
-            degats_de_chute += 1
-        else:
-            nouvelle_y -= vitesse  # Continuer Ã  monter si le saut est en cours
-            saut -= 1
-    else:
-        if degats_de_chute > 2 and not bloc_pos_joueur(nouvelle_x, nouvelle_y + TAILLE_PIXEL) in blocs_amortisseurs:
-            coeurs -= calcul_degats_de_chute(degats_de_chute) # Appliquer les dégÃ¢ts de chute
-        degats_de_chute = 0
-
-        if keys[pygame.K_UP] and saut == 0:
-            saut = 3 * int(TAILLE_PIXEL / vitesse)  # Initialiser le saut
-
-    if saut > 0:
-        nouvelle_y -= vitesse  # Monter si le saut est en cours
-        saut -= 1
-
-
-    # Vérifier les collisions avant de mettre Ã  jour la position
-    if verifier_collision(nouvelle_x, y):
-        x = nouvelle_x
-    if verifier_collision(x, nouvelle_y):
-        y = nouvelle_y
-
-    # Assurer que le joueur reste dans les limites de la carte
-    x = max(TAILLE_PIXEL, min(x, (LARGEUR_MAP - 2) * TAILLE_PIXEL))
-    y = max(TAILLE_PIXEL, min(y, (HAUTEUR_MAP - 2) * TAILLE_PIXEL))
-
-    bloc_actuel = bloc_pos_joueur(x, y)
-    if keys[pygame.K_SPACE] and bloc_actuel not in incassables:
-        if bloc_actuel not in necessite:
-            if bloc_actuel in modify_bloc_to_item: bloc_actuel = modify_bloc_to_item[bloc_actuel]
-            for i, case in enumerate(inventaire):
-                if case == 'inventaire_vide':
-                    inventaire[i] = bloc_actuel
-                    modify(x, y, 'air')
-                    if [int(x / TAILLE_PIXEL), int(y / TAILLE_PIXEL)] == [5,HAUTEUR_MAP-3]:
-                       map[-2][3] = 'air'
-                       map[-3][3] = 'air'
-                       map[-4][3] = 'air'
-                       map[-2][2] = 'air'
-                       map[-3][2] = 'air'
-                       map[-4][2] = 'air'
-                       map[-2][1] = 'air'
-                       map[-3][1] = 'air'
-                       map[-4][1] = 'air'
-                    if [int(x / TAILLE_PIXEL), int(y / TAILLE_PIXEL)] == [9, HAUTEUR_MAP-3]:
-                       map[-3][7] = 'air'
-                    break
-        elif inventaire[case_inventaire-1] == necessite[bloc_actuel][0]:
-            for i, case in enumerate(inventaire):
-                if case == 'inventaire_vide':
-                    inventaire[i] = bloc_actuel
-                    modify(x, y, 'air')
-                    break
-        else:
-            for i, case in enumerate(inventaire):
-                if case == 'inventaire_vide':
-                    inventaire[i] = necessite[bloc_actuel][1]
-                    modify(x, y, 'air')
-                    break
-    if keys[pygame.K_a] and inventaire[case_inventaire-1] != 'inventaire_vide' and bloc_actuel == 'air':
-        modify(x, y, inventaire[case_inventaire-1])
-        inventaire[case_inventaire-1] = 'inventaire_vide'
-    if keys[pygame.K_f] and inventaire[case_inventaire-1] in mangeable:
-        bouffe += mangeable[inventaire[case_inventaire-1]][0]
-        try:
-            if randint(1, mangeable[inventaire[case_inventaire-1]][1]) == 1:
-                effects_potions['poison']['durée'] = 5.0
-        except:
-            pass
-        inventaire[case_inventaire-1] = 'inventaire_vide'
-
-    if keys[pygame.K_e]:
-        actions_e()
-    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)# Parcourt la liste des mobs avec leur index
-    for i, mob in enumerate(mobs):
-        if bloc_pos_joueur(mob['x'], mob['y'] + TAILLE_PIXEL) == 'air':
-            mob['y'] += vitesse
-            mob['degats_de_chute'] += 1
-        else:
-            mob['vie'] -= calcul_degats_de_chute(mob['degats_de_chute'])
-            mob['degats_de_chute'] = 0
-        if mob['name'] in ['zombie'] and jour: mob['vie'] -= 0.1
-        if keys[pygame.K_RETURN] and abs(x - mob['x']) <= TAILLE_PIXEL and abs(y - mob['y']) <= TAILLE_PIXEL and tick % 5 == 0:
-            mob['vie'] -= FORCE_JOUEUR
-        if keys[pygame.K_e] and mob['name'] == 'cheval' and abs(x - mob['x']) <= TAILLE_PIXEL and abs(y - mob['y']) <= TAILLE_PIXEL:
-            if sur_cheval:
-                sur_cheval = False
-                vitesse /= 5
-            else:
-                sur_cheval = True
-                vitesse *= 5
-        if sur_cheval and mob['name'] == 'cheval':
-            mob['x'], mob['y'] = x, y
-        if mob['vie'] <= 0:
-            xp += mobs_to_xp[mob['name']]
-            for drop in choice(drops_mobs[mob['name']]):
-                drops.append({'x': mob['x'], 'y': mob['y'], 'name': drop})
-            del mobs[i]
-        # Vérifie si les coordonnées correspondent et si le tick est un multiple de la valeur spécifiée
-        if int(x) == int(mob['x']) and int(y) == int(mob['y']) and tick % mob['tick'] == 0:
-            coeurs -= mob['force_attaque']  # Réduit la vie du joueur
-            attaque_speciale(mob)
-            # Si le mob est un creeper, le supprime de la liste
-            if mob['name'] == 'creeper':
-                del mobs[i]
-    for i_drop, drop in enumerate(drops):
-        if keys[pygame.K_SPACE] and abs(x - drop['x']) <= TAILLE_PIXEL and abs(y - drop['y']) <= TAILLE_PIXEL:
-            for i, case in enumerate(inventaire):
-                if case == 'inventaire_vide':
-                    inventaire[i] = drop['name']
-                    del drops[i_drop]
-                    break
-
-    if jour:
-        ecran.fill(CIEL)
-    else:
-        ecran.fill(CIEL_SOIR)
     
-    dessiner_map(x - LARGEUR_ECRAN // 2, y - HAUTEUR_ECRAN // 2)
-    dessiner_coeurs(hearts, 9, coeurs)
-    dessiner_faim(bouffe_totale, 9, bouffe, effects_potions['poison']['durée'] > 0.1)
+    # Déplacement du joueur
+    if keys[pygame.K_q]:
+        x -= vitesse
+        decalage_x -= vitesse
+    if keys[pygame.K_d]:
+        x += vitesse
+        decalage_x += vitesse
+        
+    # Gravité
+    if saut > 0:
+        if sens_de_gravite == 'bas':
+            y -= vitesse * 2
+            decalage_y -= vitesse * 2
+        else:
+            y += vitesse * 2
+            decalage_y += vitesse * 2
+        saut -= 1
+    else:
+        if sens_de_gravite == 'bas':
+            if not bloc_pos_joueur(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
+                y += vitesse
+                decalage_y += vitesse
+        else:
+            if not bloc_pos_joueur(x + (TAILLE_PIXEL / 2), y - 1) in incassables:
+                y -= vitesse
+                decalage_y -= vitesse
+
+    # Logique du jeu
+    ecran.fill(CIEL)
+    
+    # Dessiner la map
+    dessiner_map(decalage_x, decalage_y)
+    
+    # Dessiner le joueur
+    pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
+    
+    # Dessiner l'inventaire
     dessiner_hotbar(case_inventaire, inventaire)
     dessiner_inventaire(case_inventaire, inventaire)
-    afficher_xp(xp)
-    pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL / 2))
-    pygame.draw.rect(ecran, CIEL, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2 + TAILLE_PIXEL / 2, TAILLE_PIXEL, TAILLE_PIXEL / 2))
-    for i, (key, element) in enumerate(effects_potions.items()):
-        if element['durée'] > 5.0:
-            effects_potions[key]['durée'] = 5.0
-        if not element['durée'] <= 0.0:
-            effects_potions[key]['durée'] -= 0.01
-            afficher_effets(key, f"{int(element['durée']*10)/10} tick", i, image(key))
-
-    if not jour:
-        overlay_nuit()
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_F3:
-            afficher_overlay_texte(ecran, '\n'.join(f"{type(valeur).__name__} {nom}: {repr(valeur)}" for nom, valeur in locals().items() if not nom.startswith('__') and not callable(valeur)), font_size = 20)
-
-
-
-    pygame.display.flip()
-    clock.tick(60)
-    running = coeurs > 0
-    if any(keys) and tick % 50 == 0:
-        bouffe -= 0.5
-    if bouffe < 0.0:
-        coeurs -= abs(bouffe)
-        bouffe = 0
-    if bouffe >= 9.0:
-        coeurs += 2
-        bouffe -= 1
-    if effects_potions['poison']['durée'] > 0.0:
-        coeurs -= 0.025
-    if effects_potions['fatigue']['durée'] > 0.0:
-        vitesse = 2.5
-    coeurs = min(coeurs, 9.0)
-    if bouffe <= 2.0:
-        effects_potions['fatigue']['durée'] = 2.0
-    if tick % 100 == 0:
-        mobs.append({
-            'name': 'zombie',
-            'x': 5 * TAILLE_PIXEL,
-            'y': 5 * TAILLE_PIXEL,
-            'tick': 5,
-            'vie_totale': 5,
-            'vie': 5,
-            'force_attaque': 2,  # en demis coeurs
-            'degats_de_chute': 0
-        })
-    jour = tick % 2000 <= 1000 #cycle jour/nuit
     
+    # Dessiner les coeurs
+    dessiner_coeurs(10, 10, hearts)
+    
+    # Dessiner la barre d'XP
+    afficher_xp(xp)
+    
+    # Modification de la position des mobs
+    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
+    
+    # Mise à jour de l'écran
+    pygame.display.flip()
+    
+    # Contrôle de la fréquence d'images
+    clock.tick(60)
 
 
 font = pygame.font.Font(None, 36)
