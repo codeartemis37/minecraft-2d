@@ -4,6 +4,8 @@ from random import *
 import math
 import zlib
 import base64
+from dataclass import dataclass
+from typing import List, Dict
 
 # Initialisation de Pygame
 pygame.init()
@@ -15,120 +17,34 @@ LARGEUR_MAP = 50
 HAUTEUR_MAP = 50
 TAILLE_PIXEL = 50
 
+@dataclass
+class Entity:
+    id: int
+    coords: dict
+    hearts: int
 
-drops_mobs = {
-    'creeper': [['poudre_a_canon']],
-    'zombie': [['rotten_flesh']],
-    'spider': [['ficelle', 'oeil_d_araignee']],
-    'cochon': [['pork']],
-    'cheval': [['cuir', 'cuir']],
-    'mouton': [['laine', 'laine', 'laine', 'mouton_cru']],
-    'enderman': [['enderpearl']],
-    'vache': [['cuir']]
-}
-mobs_hostiles = ['creeper', 'zombie', 'spider', 'enderman', 'mouton']
-mobs = [
-    {
-      'name': 'creeper',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 5, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'zombie',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 2, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'spider',
-      'x': 50,
-      'y': 50,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 2, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'cochon',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 0, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'vache',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 0, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'cheval',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 50,
-      'vie': 5,
-      'force_attaque': 0, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'mouton',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 0, #en demis coeurs
-      'degats_de_chute': 0
-    },
-    {
-      'name': 'enderman',
-      'x': 200,
-      'y': 200,
-      'tick': 5,
-      'vie_totale': 5,
-      'vie': 5,
-      'force_attaque': 5, #en demis coeurs
-      'degats_de_chute': 0
-    }
-]
-mobs_to_xp = {
-    'creeper': 5,
-    'zombie': 5,
-    'spider': 5,
-    'cochon': 5,
-    'cheval': 5,
-    'mouton': 5,
-    'enderman': 5,
-    'vache': 5
-}
-mobs_to_speed = {
-    'creeper': TAILLE_PIXEL / 20,
-    'zombie': TAILLE_PIXEL / 20,
-    'spider': TAILLE_PIXEL / 20,
-    'cochon': TAILLE_PIXEL / 20,
-    'cheval': TAILLE_PIXEL / 20,
-    'mouton': TAILLE_PIXEL / 20,
-    'enderman': TAILLE_PIXEL / 20,
-    'vache': TAILLE_PIXEL / 20
-}
+@dataclass
+class Mobs_default_by_species:
+    species: str
+    base_hearts: int
+    strenght_attack: int
+    loot: list
+    hostility: bool
+    xp: int
+    speed: int
+    data: class Entity
+
+Mobs_default_by_species("creeper", 5, 5, ['gunpowder'], True, 5, 0.05, None)
+Mobs_default_by_species("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05, None)
+Mobs_default_by_species("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.05, None)
+Mobs_default_by_species("cochon", 5, 5, ['pork'], False, 5, 0.05, None)
+Mobs_default_by_species("cheval", 5, 5, ['cuir'], False, 5, 0.05, None)
+Mobs_default_by_species("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.05, None)
+Mobs_default_by_species("enderman", 5, 5, ['enderpearl'], True, 5, 0.05, None)
+Mobs_default_by_species("vache", 5, 5, ['cuir'], False, 5, 0.05, None)
+Entity(0, {"x": 200, "y": 200}, 5)
+
+
 def compresser(texte):
     # Compresser le texte en utilisant zlib
     donnees_compressees = zlib.compress(texte.encode('utf-8'))
@@ -368,16 +284,6 @@ necessite = {
     'leaves': ['cisailles', 'inventaire_vide']
 }
 
-def inventory(map):
-    result = []
-    for n in [3, 2, 1]:
-        row = [map[-2][n], map[-3][n], map[-4][n]]
-        result.append(row)
-    
-    # Rotation de 90 degrés
-    rotated = list(zip(*result[::-1]))
-    return [rotated[-(i+1)] for i in range(0, len(rotated))]
-
 image_cache = {}
 def image(texte):
     # Charger l'image
@@ -435,26 +341,9 @@ def dessiner_map(decalage_x, decalage_y):
             if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
                 try:
                     if map[y][x] == 'air':
-                        # Simplification des conditions pour les cases spéciales
-                        special_cases = {
-                            (5, HAUTEUR_MAP-4): 'gris', (5, HAUTEUR_MAP-3): 'case', (5, HAUTEUR_MAP-2): 'gris',
-                            (4, HAUTEUR_MAP-4): 'gris', (4, HAUTEUR_MAP-3): 'fleche', (4, HAUTEUR_MAP-2): 'gris',
-                            (3, HAUTEUR_MAP-4): 'case', (3, HAUTEUR_MAP-3): 'case', (3, HAUTEUR_MAP-2): 'case',
-                            (2, HAUTEUR_MAP-4): 'case', (2, HAUTEUR_MAP-3): 'case', (2, HAUTEUR_MAP-2): 'case',
-                            (1, HAUTEUR_MAP-4): 'case', (1, HAUTEUR_MAP-3): 'case', (1, HAUTEUR_MAP-2): 'case',
-                            (9, HAUTEUR_MAP-3): 'case', (9, HAUTEUR_MAP-2): 'gris',
-                            (8, HAUTEUR_MAP-2): 'gris', (8, HAUTEUR_MAP-3): 'fleche', (8, HAUTEUR_MAP-4): 'gris',
-                            (7, HAUTEUR_MAP-2): 'gris', (7, HAUTEUR_MAP-3): 'case', (7, HAUTEUR_MAP-4): 'gris'
-                        }
-                        
-                        if (x, y) in special_cases:
-                            ecran.blit(image(special_cases[(x, y)]), (bloc_x, bloc_y))
-                        elif x >= 7 and y >= HAUTEUR_MAP-4:
-                            ecran.blit(image('case'), (bloc_x, bloc_y))
-                        else:
-                            # Alternance de couleurs pour l'air
-                            color = air if (y+x) % 2 == 0 else air_HAUTE
-                            pygame.draw.rect(ecran, color, (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
+                        # Alternance de couleurs pour l'air
+                        color = air if (y+x) % 2 == 0 else air_HAUTE
+                        pygame.draw.rect(ecran, color, (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
                     else:
                         # Dessin des blocs non-air
                         pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
@@ -525,7 +414,7 @@ def dessiner_inventaire(case_inventaire, inventaire):
     for n in range(3):
         for i in range(nombre_cases):
             x = position_x_debut + (i * TAILLE_PIXEL)
-            y = HAUTEUR_ECRAN - (TAILLE_PIXEL * (n + 2))
+            y = HAUTEUR_ECRAN - (TAILLE_PIXEL * (n + 2.5))
             
             # Dessiner la case de l'inventaire
             pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
@@ -732,7 +621,6 @@ def overlay_nuit():
 # Position initiale du joueur
 if not 'x' in locals() and not 'y' in locals():
     x, y = (5 * TAILLE_PIXEL), (5 * TAILLE_PIXEL)
-    #x, y = (LARGEUR_MAP * TAILLE_PIXEL) // 2, (HAUTEUR_MAP * TAILLE_PIXEL) // 2
 
 
 tick = 0
