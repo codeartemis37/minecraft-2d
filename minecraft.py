@@ -133,12 +133,11 @@ from random import randint
 def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
     for mob in mobs:
         SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
-        print(mob.species, SPEED)
-        
+
         # Convertir les coordonnées du joueur en unités de la grille
         player_x = x
         player_y = y
-        
+
         if mob.species == 'enderman' and tick % 60 == 0:
             i = 0
             while i < 50:
@@ -152,26 +151,29 @@ def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
                 if not bloc_pos(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in incassables:
                     mob.coords['x'] = testx
                     mob.coords['y'] = testy
-            
+
         # Calculer la direction vers le joueur
         dx = player_x - mob.coords['x']
         dy = player_y - mob.coords['y']
-        
+
         centre_x = mob.coords['x'] + (TAILLE_PIXEL / 2)
         centre_y = mob.coords['y'] + (TAILLE_PIXEL / 2)
-        est_araignee = mob.species == 'spider'
-        
+
         # Déplacement horizontal
-        if dx > 0 and (est_araignee or not bloc_pos(centre_x + SPEED, centre_y) in incassables):
+        if dx > 0 and ((mob.species == 'spider') or not bloc_pos(centre_x + SPEED, centre_y) in incassables):
             mob.coords['x'] += SPEED
-        elif dx < 0 and (est_araignee or not bloc_pos(centre_x - SPEED, centre_y) in incassables):
-           mob.coords['x'] -= SPEED
-        
+        elif dx < 0 and ((mob.species == 'spider') or not bloc_pos(centre_x - SPEED, centre_y) in incassables):
+            mob.coords['x'] -= SPEED
+
         # Déplacement vertical
-        if dy > 0 and (est_araignee or not bloc_pos(centre_x, centre_y + SPEED) in incassables):
+        if dy > 0 and ((mob.species == 'spider') or not bloc_pos(centre_x, centre_y + SPEED) in incassables):
             mob.coords['y'] += SPEED
-        elif dy < 0 and (est_araignee or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
+        elif dy < 0 and ((mob.species == 'spider') or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
             mob.coords['y'] -= SPEED
+
+        # Application de la gravité
+        if not bloc_pos(mob.coords['x'] + (TAILLE_PIXEL / 2), mob.coords['y'] + TAILLE_PIXEL + 1) in incassables:
+            mob.coords['y'] += SPEED
 
         # Débogage : Afficher les valeurs intermédiaires
         #print(f"Player position: ({x}, {y})")
@@ -217,7 +219,6 @@ def creer_map():
     arbre(9, 25)
     arbre(10, 25)
     
-    print(map)
     return map
 def craft(valeur_recherchee):
     craft_table = {
@@ -277,7 +278,6 @@ def cuire(valeur_recherchee):
     arbre(9, 25)
     arbre(10, 25)
     
-    print(map)
     return map
 
 # Appel de la fonction
@@ -333,7 +333,7 @@ def bloc_pos(x, y):
     try:
         return map[grid_y][grid_x]
     except:
-        print('error: return map[grid_y][grid_x]')
+        print('error: return bloc_pos map[grid_y][grid_x]')
         return None
 
 def modify(x, y, bloc):
@@ -366,7 +366,6 @@ def dessiner_map(decalage_x, decalage_y):
                         # Dessin des blocs non-air
                         pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
                 except Exception as e:
-                    print(f'Erreur dans dessiner_map: {e}')
                     ecran.blit(image(map[y][x]), (bloc_x, bloc_y))
     
     # Dessin des mobs
@@ -517,7 +516,6 @@ y = 200
 decalage_x = 0
 decalage_y = 0
 running = True
-sens_de_gravite = 'bas'
 tick = 0
 while running:
     tick += 1
@@ -556,22 +554,13 @@ while running:
         
     # Gravité
     if saut > 0:
-        if sens_de_gravite == 'bas':
-            y -= vitesse * 2
-            decalage_y -= vitesse * 2
-        else:
-            y += vitesse * 2
-            decalage_y += vitesse * 2
+        y -= vitesse * 2
+        decalage_y -= vitesse * 2
         saut -= 1
     else:
-        if sens_de_gravite == 'bas':
-            if not bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
-                y += vitesse
-                decalage_y += vitesse
-        else:
-            if not bloc_pos(x + (TAILLE_PIXEL / 2), y - 1) in incassables:
-                y -= vitesse
-                decalage_y -= vitesse
+        if not bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
+            y += vitesse
+            decalage_y += vitesse
 
     # Logique du jeu
     ecran.fill(CIEL)
