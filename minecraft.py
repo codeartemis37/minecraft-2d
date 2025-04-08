@@ -103,7 +103,7 @@ mangeable = {
 
 poison = 0.0
 drops = []
-incassables = ['air', 'sortie', 'bordure', 'fleche', 'case', 'gris']
+incassables = ['air', 'bordure']
 modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
     'verre1': 'verre2'
@@ -113,7 +113,7 @@ if not 'coeurs' in locals(): coeurs = 9
 if not 'bouffe' in locals(): bouffe = 9
 if not 'bouffe_totale' in locals(): bouffe_totale = 9
 if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
-if not 'xp' in locals(): xp = 10
+if not 'xp' in locals(): xp = 15
 running = True
 case_inventaire = 1
 if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
@@ -171,9 +171,6 @@ def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
         elif dy < 0 and ((mob.species == 'spider') or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
             mob.coords['y'] -= SPEED
 
-        # Application de la gravité
-        if not bloc_pos(mob.coords['x'] + (TAILLE_PIXEL / 2), mob.coords['y'] + TAILLE_PIXEL + 1) in incassables:
-            mob.coords['y'] += SPEED
 
         # Débogage : Afficher les valeurs intermédiaires
         #print(f"Player position: ({x}, {y})")
@@ -535,32 +532,34 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            if event.key == pygame.K_SPACE and bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)) != "air":
-                saut = VITESSE_SAUT
-            if event.key == pygame.K_RIGHT:
-                case_inventaire += 1
-            if event.key == pygame.K_LEFT:
-                case_inventaire -= 1
-    if case_inventaire > 10:
-        case_inventaire = 1
-    if case_inventaire < 1:
-        case_inventaire = 10
+            if event.key == pygame.K_0:
+                case_inventaire = 0
+            if event.key == pygame.K_1:
+                case_inventaire = 1
+            if event.key == pygame.K_2:
+                case_inventaire = 2
+            if event.key == pygame.K_3:
+                case_inventaire = 3
+            if event.key == pygame.K_4:
+                case_inventaire = 4
+            if event.key == pygame.K_5:
+                case_inventaire = 5
+            if event.key == pygame.K_6:
+                case_inventaire = 6
+            if event.key == pygame.K_7:
+                case_inventaire = 8
+            if event.key == pygame.K_9:
+                case_inventaire = 9
+            if event.key == pygame.K_RIGHTPAREN:
+                case_inventaire = 10
     keys = pygame.key.get_pressed()
     
     # Déplacement du joueur
     if keys[pygame.K_q]:
-        x -= vitesse
         decalage_x -= vitesse
     if keys[pygame.K_d]:
-        x += vitesse
         decalage_x += vitesse
     
-    if saut > 0:
-        saut -= 1
-        decalage_y -= 1
-    else:
-        if bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)) == "air":
-            decalage_y += 1
     
     # Logique du jeu
     ecran.fill(CIEL)
@@ -576,7 +575,7 @@ while running:
     
     # Dessiner l'inventaire
     dessiner_hotbar(case_inventaire, inventaire)
-    dessiner_inventaire(case_inventaire, inventaire)
+    # dessiner_inventaire(case_inventaire, inventaire)
     
     # Dessiner les coeurs
     dessiner_coeurs(10, 10, hearts)
@@ -619,4 +618,4 @@ print()
 print(compresser(f'[{hearts}, {x}, {y}, {inventaire}, {mobs}, {bouffe}, {vitesse}, {effects_potions}, {xp}]'))
 # Quitter Pygame proprement
 pygame.quit()
-while True: input("vous pouvez fermer la fenetre")
+input("vous pouvez fermer la fenetre")
