@@ -317,8 +317,8 @@ clock = pygame.time.Clock()
 
 def verifier_collision(x, y):
     # Convertir les coordonnées en indices de la grille
-    grid_x = round(x / TAILLE_PIXEL)
-    grid_y = round(y / TAILLE_PIXEL)
+    grid_x = round(x)
+    grid_y = round(y)
     
     # Vérifier si les indices sont dans les limites de la carte
     if 0 <= grid_x < LARGEUR_MAP and 0 <= grid_y < HAUTEUR_MAP:
@@ -327,8 +327,8 @@ def verifier_collision(x, y):
 
 def bloc_pos(x, y):
     # Convertir les coordonnées en indices de la grille
-    grid_x = int(x / TAILLE_PIXEL)
-    grid_y = int(y / TAILLE_PIXEL)
+    grid_x = int(x*TAILLE_PIXEL)
+    grid_y = int(y*TAILLE_PIXEL)
     try:
         return map[grid_y][grid_x]
     except:
@@ -337,8 +337,8 @@ def bloc_pos(x, y):
 
 def modify(x, y, bloc):
     # Convertir les coordonnées en indices de la grille
-    grid_x = int(x / TAILLE_PIXEL)
-    grid_y = int(y / TAILLE_PIXEL)
+    grid_x = int(x)
+    grid_y = int(y)
     map[grid_y][grid_x] = bloc
 
 # Fonction pour dessiner la barre de vie
@@ -530,8 +530,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
             if event.key == pygame.K_0:
                 case_inventaire = 0
             if event.key == pygame.K_1:
@@ -556,9 +554,17 @@ while running:
     
     # Déplacement du joueur
     if keys[pygame.K_q]:
-        decalage_x -= vitesse
+        for i in range(vitesse):
+            print(bloc_pos(x - 1 + 0.5, y - 1))
+            if bloc_pos(x-1, y):
+                x -= 1
+                decalage_x -= 1
     if keys[pygame.K_d]:
-        decalage_x += vitesse
+        for i in range(vitesse):
+            print(bloc_pos(x + 1 + 0.5, y - 1))
+            if bloc_pos(x+1, y):
+                x += 1
+                decalage_x += 1
     
     
     # Logique du jeu
@@ -566,6 +572,9 @@ while running:
     
     # Dessiner la map
     dessiner_map(decalage_x, decalage_y)
+
+    # Modification de la position des mobs
+    # mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
 
     # Dessiner les mobs
     dessiner_mobs()
@@ -582,9 +591,6 @@ while running:
     
     # Dessiner la barre d'XP
     afficher_xp(xp)
-    
-    # Modification de la position des mobs
-    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
     
     # Mise à jour de l'écran
     pygame.display.flip()
