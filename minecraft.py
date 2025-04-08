@@ -103,7 +103,7 @@ mangeable = {
 
 poison = 0.0
 drops = []
-incassables = ['air', 'bordure']
+incassables = ['air', 'sortie', 'bordure', 'fleche', 'case', 'gris']
 modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
     'verre1': 'verre2'
@@ -113,7 +113,7 @@ if not 'coeurs' in locals(): coeurs = 9
 if not 'bouffe' in locals(): bouffe = 9
 if not 'bouffe_totale' in locals(): bouffe_totale = 9
 if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
-if not 'xp' in locals(): xp = 15
+if not 'xp' in locals(): xp = 10
 running = True
 case_inventaire = 1
 if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
@@ -133,11 +133,12 @@ from random import randint
 def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
     for mob in mobs:
         SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
-
+        print(mob.species, SPEED)
+        
         # Convertir les coordonnées du joueur en unités de la grille
         player_x = x
         player_y = y
-
+        
         if mob.species == 'enderman' and tick % 60 == 0:
             i = 0
             while i < 50:
@@ -151,26 +152,26 @@ def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
                 if not bloc_pos(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in incassables:
                     mob.coords['x'] = testx
                     mob.coords['y'] = testy
-
+            
         # Calculer la direction vers le joueur
         dx = player_x - mob.coords['x']
         dy = player_y - mob.coords['y']
-
+        
         centre_x = mob.coords['x'] + (TAILLE_PIXEL / 2)
         centre_y = mob.coords['y'] + (TAILLE_PIXEL / 2)
-
+        est_araignee = mob.species == 'spider'
+        
         # Déplacement horizontal
-        if dx > 0 and ((mob.species == 'spider') or not bloc_pos(centre_x + SPEED, centre_y) in incassables):
+        if dx > 0 and (est_araignee or not bloc_pos(centre_x + SPEED, centre_y) in incassables):
             mob.coords['x'] += SPEED
-        elif dx < 0 and ((mob.species == 'spider') or not bloc_pos(centre_x - SPEED, centre_y) in incassables):
-            mob.coords['x'] -= SPEED
-
+        elif dx < 0 and (est_araignee or not bloc_pos(centre_x - SPEED, centre_y) in incassables):
+           mob.coords['x'] -= SPEED
+        
         # Déplacement vertical
-        if dy > 0 and ((mob.species == 'spider') or not bloc_pos(centre_x, centre_y + SPEED) in incassables):
+        if dy > 0 and (est_araignee or not bloc_pos(centre_x, centre_y + SPEED) in incassables):
             mob.coords['y'] += SPEED
-        elif dy < 0 and ((mob.species == 'spider') or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
+        elif dy < 0 and (est_araignee or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
             mob.coords['y'] -= SPEED
-
 
         # Débogage : Afficher les valeurs intermédiaires
         #print(f"Player position: ({x}, {y})")
@@ -216,6 +217,7 @@ def creer_map():
     arbre(9, 25)
     arbre(10, 25)
     
+    print(map)
     return map
 def craft(valeur_recherchee):
     craft_table = {
@@ -238,9 +240,7 @@ def cuire(valeur_recherchee):
         return furnace_table [valeur_recherchee]
     except:
         pass
-    return 'air'  # Retourne None si aucune correspondance n'est trouvée...
-
-def creer_map():
+    return 'air'  # Retourne None si aucune correspondance n'est trouvée... def creer_map():
     # Initialisation de la carte avec des 'air'
     map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
     
@@ -277,6 +277,7 @@ def creer_map():
     arbre(9, 25)
     arbre(10, 25)
     
+    print(map)
     return map
 
 # Appel de la fonction
@@ -317,8 +318,8 @@ clock = pygame.time.Clock()
 
 def verifier_collision(x, y):
     # Convertir les coordonnées en indices de la grille
-    grid_x = round(x)
-    grid_y = round(y)
+    grid_x = round(x / TAILLE_PIXEL)
+    grid_y = round(y / TAILLE_PIXEL)
     
     # Vérifier si les indices sont dans les limites de la carte
     if 0 <= grid_x < LARGEUR_MAP and 0 <= grid_y < HAUTEUR_MAP:
@@ -327,18 +328,18 @@ def verifier_collision(x, y):
 
 def bloc_pos(x, y):
     # Convertir les coordonnées en indices de la grille
-    grid_x = int(x*TAILLE_PIXEL)
-    grid_y = int(y*TAILLE_PIXEL)
+    grid_x = int(x / TAILLE_PIXEL)
+    grid_y = int(y / TAILLE_PIXEL)
     try:
         return map[grid_y][grid_x]
     except:
-        print('error: return bloc_pos map[grid_y][grid_x]')
+        print('error: return map[grid_y][grid_x]')
         return None
 
 def modify(x, y, bloc):
     # Convertir les coordonnées en indices de la grille
-    grid_x = int(x)
-    grid_y = int(y)
+    grid_x = int(x / TAILLE_PIXEL)
+    grid_y = int(y / TAILLE_PIXEL)
     map[grid_y][grid_x] = bloc
 
 # Fonction pour dessiner la barre de vie
@@ -365,9 +366,9 @@ def dessiner_map(decalage_x, decalage_y):
                         # Dessin des blocs non-air
                         pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
                 except Exception as e:
+                    print(f'Erreur dans dessiner_map: {e}')
                     ecran.blit(image(map[y][x]), (bloc_x, bloc_y))
-
-def dessiner_mobs():
+    
     # Dessin des mobs
     for mob in mobs:
         x_mob = int(mob.coords['x'] - decalage_x)
@@ -516,12 +517,8 @@ y = 200
 decalage_x = 0
 decalage_y = 0
 running = True
+sens_de_gravite = 'bas'
 tick = 0
-# Définition des constantes
-VITESSE_SAUT = 10  # Vitesse initiale du saut
-
-
-# Boucle principale
 while running:
     tick += 1
     
@@ -530,61 +527,64 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_0:
-                case_inventaire = 0
-            if event.key == pygame.K_1:
-                case_inventaire = 1
-            if event.key == pygame.K_2:
-                case_inventaire = 2
-            if event.key == pygame.K_3:
-                case_inventaire = 3
-            if event.key == pygame.K_4:
-                case_inventaire = 4
-            if event.key == pygame.K_5:
-                case_inventaire = 5
-            if event.key == pygame.K_6:
-                case_inventaire = 6
-            if event.key == pygame.K_7:
-                case_inventaire = 8
-            if event.key == pygame.K_9:
-                case_inventaire = 9
-            if event.key == pygame.K_RIGHTPAREN:
-                case_inventaire = 10
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            if event.key == pygame.K_e:
+                if sens_de_gravite == 'bas':
+                    sens_de_gravite = 'haut'
+                else:
+                    sens_de_gravite = 'bas'
+            if event.key == pygame.K_SPACE:
+                saut = 10
+            if event.key == pygame.K_RIGHT:
+                case_inventaire += 1
+            if event.key == pygame.K_LEFT:
+                case_inventaire -= 1
+    if case_inventaire > 10:
+        case_inventaire = 1
+    if case_inventaire < 1:
+        case_inventaire = 10
     keys = pygame.key.get_pressed()
     
     # Déplacement du joueur
     if keys[pygame.K_q]:
-        for i in range(vitesse):
-            print(bloc_pos(x - 1 + 0.5, y - 1))
-            if bloc_pos(x-1, y):
-                x -= 1
-                decalage_x -= 1
+        x -= vitesse
+        decalage_x -= vitesse
     if keys[pygame.K_d]:
-        for i in range(vitesse):
-            print(bloc_pos(x + 1 + 0.5, y - 1))
-            if bloc_pos(x+1, y):
-                x += 1
-                decalage_x += 1
-    
-    
+        x += vitesse
+        decalage_x += vitesse
+        
+    # Gravité
+    if saut > 0:
+        if sens_de_gravite == 'bas':
+            y -= vitesse * 2
+            decalage_y -= vitesse * 2
+        else:
+            y += vitesse * 2
+            decalage_y += vitesse * 2
+        saut -= 1
+    else:
+        if sens_de_gravite == 'bas':
+            if not bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
+                y += vitesse
+                decalage_y += vitesse
+        else:
+            if not bloc_pos(x + (TAILLE_PIXEL / 2), y - 1) in incassables:
+                y -= vitesse
+                decalage_y -= vitesse
+
     # Logique du jeu
     ecran.fill(CIEL)
     
     # Dessiner la map
     dessiner_map(decalage_x, decalage_y)
-
-    # Modification de la position des mobs
-    # mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
-
-    # Dessiner les mobs
-    dessiner_mobs()
-
+    
     # Dessiner le joueur
     pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
     
     # Dessiner l'inventaire
     dessiner_hotbar(case_inventaire, inventaire)
-    # dessiner_inventaire(case_inventaire, inventaire)
+    dessiner_inventaire(case_inventaire, inventaire)
     
     # Dessiner les coeurs
     dessiner_coeurs(10, 10, hearts)
@@ -592,11 +592,15 @@ while running:
     # Dessiner la barre d'XP
     afficher_xp(xp)
     
+    # Modification de la position des mobs
+    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
+    
     # Mise à jour de l'écran
     pygame.display.flip()
     
     # Contrôle de la fréquence d'images
     clock.tick(60)
+
 
 font = pygame.font.Font(None, 36)
 ecran.blit((lambda s: (s.fill((50, 50, 50, 150)), s)[1])(pygame.Surface(ecran.get_size(), pygame.SRCALPHA)), (0, 0)) # Fond gris legerement transparent
@@ -624,4 +628,4 @@ print()
 print(compresser(f'[{hearts}, {x}, {y}, {inventaire}, {mobs}, {bouffe}, {vitesse}, {effects_potions}, {xp}]'))
 # Quitter Pygame proprement
 pygame.quit()
-input("vous pouvez fermer la fenetre")
+while True: input("vous pouvez fermer la fenetre")
