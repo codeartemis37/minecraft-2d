@@ -1,3 +1,5 @@
 ajouter le cuir
 ajouter un vrai inventaire et stockage des coffres
 remettre la gravité
+https://www.geeksforgeeks.org/how-to-get-keyboard-input-in-pygame/
+créer un classe pour les blocs
