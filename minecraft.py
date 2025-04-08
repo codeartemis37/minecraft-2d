@@ -114,11 +114,8 @@ if not 'bouffe' in locals(): bouffe = 9
 if not 'bouffe_totale' in locals(): bouffe_totale = 9
 if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
 if not 'xp' in locals(): xp = 10
-running = True
 case_inventaire = 1
 if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
-teleportation = False
-if not 'portail' in locals(): portail = None
 hearts = 9
 FORCE_JOUEUR = 2
 jour = True
@@ -126,14 +123,12 @@ vitesse = 4
 sur_cheval = False
 saut = 0
 degats_de_chute = 0
-blocs_amortisseurs = ['ficelle']
 
 from random import randint
 
 def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
     for mob in mobs:
         SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
-        print(mob.species, SPEED)
         
         # Convertir les coordonnées du joueur en unités de la grille
         player_x = x
@@ -184,20 +179,16 @@ def creer_map():
     # Initialisation de la carte avec des 'air'
     map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
     
-    # Ajout des bordures en haut et en bas
-    map[0] = ['bordure' for _ in range(LARGEUR_MAP)]
-    map[-1] = ['bordure' for _ in range(LARGEUR_MAP)]
-    
-    # Ajout des bordures Ãƒ  gauche et Ãƒ  droite
+    # Ajout des bordures
     for i in range(HAUTEUR_MAP):
         map[i][0] = 'bordure'
         map[i][-1] = 'bordure'
+        map[0][i] = 'bordure'
+        map[-1][i] = 'bordure'
         
     
     # Stuff de base
-    map[1][1] = 'coffre'
-    map[1][2] = 'etabli'
-    map[1][3] = 'furnace_burned'
+    map[1][1:3] = 'coffre', 'etabli', 'furnace_burned'
     
     # Arbre
     def arbre(x, y):
@@ -217,8 +208,8 @@ def creer_map():
     arbre(9, 25)
     arbre(10, 25)
     
-    print(map)
     return map
+
 def craft(valeur_recherchee):
     craft_table = {
         
@@ -240,45 +231,7 @@ def cuire(valeur_recherchee):
         return furnace_table [valeur_recherchee]
     except:
         pass
-    return 'air'  # Retourne None si aucune correspondance n'est trouvée... def creer_map():
-    # Initialisation de la carte avec des 'air'
-    map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
-    
-    # Ajout des bordures en haut et en bas
-    map[0] = ['bordure' for _ in range(LARGEUR_MAP)]
-    map[-1] = ['bordure' for _ in range(LARGEUR_MAP)]
-    
-    # Ajout des bordures Ã  gauche et Ã  droite
-    for i in range(HAUTEUR_MAP):
-        map[i][0] = 'bordure'
-        map[i][-1] = 'bordure'
-        
-    
-    # Stuff de base
-    map[1][1] = 'coffre'
-    map[1][2] = 'etabli'
-    map[1][3] = 'furnace_burned'
-    
-    # Arbre
-    def arbre(x, y):
-        map[y+1][x] = 'bois'
-        map[y][x] = 'bois'
-        map[y-1][x] = 'bois'
-        map[y-2][x] = 'bois'
-        map[y-2][x-1] = 'leaves'
-        map[y-2][x] = 'leaves'
-        map[y-2][x+1] = 'leaves'
-        map[y-3][x] = 'leaves'
-    
-    arbre(6, 5)
-    arbre(7, 5)
-    arbre(14, 20)
-    arbre(15, 20)
-    arbre(9, 25)
-    arbre(10, 25)
-    
-    print(map)
-    return map
+    return 'air'  # Retourne None si aucune correspondance n'est trouvée...
 
 # Appel de la fonction
 if not 'map' in locals():
@@ -294,7 +247,6 @@ INVENTAIRE = (169, 169, 169)
 INVENTAIRE_VIDE = (169, 169, 169)
 RED = (255, 0, 0)
 GREEN = (0, 225, 0)
-air_HAUTE = (0, 200, 0)
 air = (0, 150, 0)
 
 necessite = {
@@ -358,17 +310,11 @@ def dessiner_map(decalage_x, decalage_y):
             bloc_y = y * TAILLE_PIXEL - int(decalage_y)
             if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
                 try:
-                    if map[y][x] == 'air':
-                        # Alternance de couleurs pour l'air
-                        color = air if (y+x) % 2 == 0 else air_HAUTE
-                        pygame.draw.rect(ecran, color, (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
-                    else:
-                        # Dessin des blocs non-air
-                        pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
+                    pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
                 except Exception as e:
-                    print(f'Erreur dans dessiner_map: {e}')
                     ecran.blit(image(map[y][x]), (bloc_x, bloc_y))
-    
+
+def dessiner_mobs():
     # Dessin des mobs
     for mob in mobs:
         x_mob = int(mob.coords['x'] - decalage_x)
@@ -517,8 +463,8 @@ y = 200
 decalage_x = 0
 decalage_y = 0
 running = True
-sens_de_gravite = 'bas'
 tick = 0
+
 while running:
     tick += 1
     
@@ -529,12 +475,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            if event.key == pygame.K_e:
-                if sens_de_gravite == 'bas':
-                    sens_de_gravite = 'haut'
-                else:
-                    sens_de_gravite = 'bas'
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE and ( bloc_pos((x + (TAILLE_PIXEL / 2)), (y + (TAILLE_PIXEL / 2))) != 'air' ):
                 saut = 10
             if event.key == pygame.K_RIGHT:
                 case_inventaire += 1
@@ -556,28 +497,27 @@ while running:
         
     # Gravité
     if saut > 0:
-        if sens_de_gravite == 'bas':
-            y -= vitesse * 2
-            decalage_y -= vitesse * 2
-        else:
-            y += vitesse * 2
-            decalage_y += vitesse * 2
+        y -= 2
+        decalage_y -= 2
         saut -= 1
     else:
-        if sens_de_gravite == 'bas':
-            if not bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) in incassables:
-                y += vitesse
-                decalage_y += vitesse
-        else:
-            if not bloc_pos(x + (TAILLE_PIXEL / 2), y - 1) in incassables:
-                y -= vitesse
-                decalage_y -= vitesse
+        if bloc_pos((x + (TAILLE_PIXEL / 2)), (y + (TAILLE_PIXEL / 2))) == 'air':
+            y += 1
+            decalage_y += 1
+
 
     # Logique du jeu
     ecran.fill(CIEL)
     
+
     # Dessiner la map
     dessiner_map(decalage_x, decalage_y)
+
+    # Modification de la position des mobs
+    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
+    
+    # Dessiner les mobs
+    dessiner_mobs()
     
     # Dessiner le joueur
     pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
@@ -592,8 +532,6 @@ while running:
     # Dessiner la barre d'XP
     afficher_xp(xp)
     
-    # Modification de la position des mobs
-    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
     
     # Mise à jour de l'écran
     pygame.display.flip()
@@ -617,8 +555,8 @@ ecran.blit(texte_espace, rect_espace)
 
 pygame.display.flip()
 
-# Boucle principale
 running = True
+# Boucle principale de fin
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE):
@@ -628,4 +566,4 @@ print()
 print(compresser(f'[{hearts}, {x}, {y}, {inventaire}, {mobs}, {bouffe}, {vitesse}, {effects_potions}, {xp}]'))
 # Quitter Pygame proprement
 pygame.quit()
-while True: input("vous pouvez fermer la fenetre")
+input("vous pouvez fermer la fenetre")
