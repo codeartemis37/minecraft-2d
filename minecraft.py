@@ -241,7 +241,9 @@ def cuire(valeur_recherchee):
         return furnace_table [valeur_recherchee]
     except:
         pass
-    return 'air'  # Retourne None si aucune correspondance n'est trouvée... def creer_map():
+    return 'air'  # Retourne None si aucune correspondance n'est trouvée...
+
+def creer_map():
     # Initialisation de la carte avec des 'air'
     map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
     
@@ -367,7 +369,8 @@ def dessiner_map(decalage_x, decalage_y):
                         pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
                 except Exception as e:
                     ecran.blit(image(map[y][x]), (bloc_x, bloc_y))
-    
+
+def dessiner_mobs():
     # Dessin des mobs
     for mob in mobs:
         x_mob = int(mob.coords['x'] - decalage_x)
@@ -518,11 +521,8 @@ decalage_y = 0
 running = True
 tick = 0
 # Définition des constantes
-GRAVITE = 0.5  # Accélération due à la gravité
 VITESSE_SAUT = 10  # Vitesse initiale du saut
 
-# Initialiser la vitesse verticale
-vitesse_verticale = 0
 
 # Boucle principale
 while running:
@@ -535,8 +535,8 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            if event.key == pygame.K_SPACE and bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL + 1)) != "air":
-                vitesse_verticale = -VITESSE_SAUT  # Déclencher le saut
+            if event.key == pygame.K_SPACE and bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)) != "air":
+                saut = VITESSE_SAUT
             if event.key == pygame.K_RIGHT:
                 case_inventaire += 1
             if event.key == pygame.K_LEFT:
@@ -555,23 +555,22 @@ while running:
         x += vitesse
         decalage_x += vitesse
     
-    
-    if bloc_pos(x + (TAILLE_PIXEL / 2), y + TAILLE_PIXEL + 1) == "air":
-        # Appliquer la gravité
-        vitesse_verticale = min(vitesse_verticale + GRAVITE, 10)
-        y += vitesse_verticale
-        decalage_y += vitesse_verticale
+    if saut > 0:
+        saut -= 1
+        decalage_y -= 1
     else:
-        # Vérifier les collisions avec le sol
-        y = (y // TAILLE_PIXEL) * TAILLE_PIXEL  # Aligner le joueur sur la grille
-        vitesse_verticale = 0  # Arrêter la vitesse verticale
+        if bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)) == "air":
+            decalage_y += 1
     
     # Logique du jeu
     ecran.fill(CIEL)
     
     # Dessiner la map
     dessiner_map(decalage_x, decalage_y)
-    
+
+    # Dessiner les mobs
+    dessiner_mobs()
+
     # Dessiner le joueur
     pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
     
