@@ -116,7 +116,7 @@ if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.
 if not 'xp' in locals(): xp = 10
 case_inventaire = 1
 if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
-hearts = 9
+hearts = 20
 FORCE_JOUEUR = 2
 jour = True
 vitesse = 4
@@ -428,7 +428,7 @@ def afficher_xp(xp: int) -> None:
     # Affichage de la barre d'XP sur l'écran
     ecran.blit(barre_surface, (x, y))
 
-def dessiner_coeurs(nombre_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:
+def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:
     # Charger l'image du cÅ“ur
     image_heart = image('heart')
     image_demi_heart = image('demi_heart')
@@ -436,26 +436,63 @@ def dessiner_coeurs(nombre_coeurs: int, nombre_cases_inventaire: int, vies: int)
     
     largeur_totale = nombre_cases_inventaire * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2 - (TAILLE_PIXEL/2)
-    if vies <= 2:
-        position_x_debut += randint(-5, 5)
     y_coeur = HAUTEUR_ECRAN - 2 * TAILLE_PIXEL  # Juste au-dessus de l'inventaire
-    if vies <= 2:
+    
+    # Tremblement si peu de vies (moins de 4 demis coeurs)
+    if vies <= 4:
         y_coeur += randint(-5, 5)
+        position_x_debut += randint(-5, 5)
     
-    coeurs_pleins = int(vies)
-    demi_coeur = vies % 1 > 0
-    coeurs_vides = nombre_coeurs - coeurs_pleins - (1 if demi_coeur else 0)
     
-    for i in range(nombre_coeurs):
-        x_coeur = position_x_debut + (i * int(TAILLE_PIXEL/2))
-        if i < coeurs_pleins:
-            image_a_afficher = image_heart
-        elif i == coeurs_pleins and demi_coeur:
-            image_a_afficher = image_demi_heart
-        else:
-            image_a_afficher = image_heart_vide
+    if nombre_demis_coeurs % 2 != 0:
+        print("nombre de coeurs total doit etre divisible par 2")
+        exit()
+    
+    for i in range(nombre_demis_coeurs // 2):
+        # Calcul de la position en x pour chaque cœur
+        x_coeur = position_x_debut + (i * int(TAILLE_PIXEL / 2))
         
+        # Détermine quelle image afficher en fonction des vies restantes
+        if vies >= (i + 1) * 2:  # Si le joueur a un cœur entier à cet emplacement
+            image_a_afficher = image_heart
+        elif vies == (i * 2) + 1:  # Si le joueur a un demi-cœur à cet emplacement
+            image_a_afficher = image_demi_heart
+        else:  # Si le joueur n'a plus de vie à cet emplacement
+            image_a_afficher = image_heart_vide
+                
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
+
+
+def unit_test_variables() -> None:
+    type_mapping = {
+        "bool": bool,
+        "int": int,
+        "float": float,
+        "str": str,
+        "list": list,
+        "dict": dict,
+    }
+
+    dict_type_var = {
+        "running": "bool"
+    }
+
+    for variable, type_str in dict_type_var.items():
+        expected_type = type_mapping.get(type_str)
+        if expected_type is None:
+            print(f"Type '{type_str}' is not recognized")
+            exit()
+
+        var_value = locals().get(variable, globals().get(variable))
+        if var_value is None:
+            print(f"Variable '{variable}' is not defined")
+            exit()
+
+        if type(var_value) != expected_type:
+            print(f"Erreur du type de {variable}: expected {expected_type.__name__}, got {type(var_value).__name__}")
+            exit()
+
+
 
 # Boucle principale
 x = 200
@@ -527,7 +564,7 @@ while running:
     dessiner_inventaire(case_inventaire, inventaire)
     
     # Dessiner les coeurs
-    dessiner_coeurs(10, 10, hearts)
+    dessiner_coeurs(20, 10, hearts)
     
     # Dessiner la barre d'XP
     afficher_xp(xp)
@@ -535,6 +572,9 @@ while running:
     
     # Mise à jour de l'écran
     pygame.display.flip()
+    
+    # Verification des types de variables
+    unit_test_variables()
     
     # Contrôle de la fréquence d'images
     clock.tick(60)
