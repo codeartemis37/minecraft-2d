@@ -431,12 +431,7 @@ def afficher_xp(xp: int) -> None:
     # Affichage de la barre d'XP sur l'écran
     ecran.blit(barre_surface, (x, y))
 
-def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:
-    # Charger l'image du cÅ“ur
-    image_heart = image('heart')
-    image_demi_heart = image('demi_heart')
-    image_heart_vide = image('heart_vide')
-    
+def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:    
     largeur_totale = nombre_cases_inventaire * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2 - (TAILLE_PIXEL/2)
     y_coeur = HAUTEUR_ECRAN - 2 * TAILLE_PIXEL  # Juste au-dessus de l'inventaire
@@ -457,11 +452,11 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
         
         # Détermine quelle image afficher en fonction des vies restantes
         if vies >= (i + 1) * 2:  # Si le joueur a un cœur entier à cet emplacement
-            image_a_afficher = image_heart
+            image_a_afficher = image('heart')
         elif vies == (i * 2) + 1:  # Si le joueur a un demi-cœur à cet emplacement
-            image_a_afficher = image_demi_heart
+            image_a_afficher = image('demi_heart')
         else:  # Si le joueur n'a plus de vie à cet emplacement
-            image_a_afficher = image_heart_vide
+            image_a_afficher = image('heart_vide')
                 
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
@@ -548,16 +543,13 @@ def track_variables(output_filename="variables.json"):
     with open(output_path, "w") as json_file:
         json.dump(variables_info, json_file, indent=4)
 
-    print(f"Les informations des variables ont été exportées dans '{output_path}'.")
 
 
 
 
 # Boucle principale
-x = 200
-y = 200
-decalage_x = 0
-decalage_y = 0
+x, y = 200, 200
+decalage_x, decalage_y = 0, 0
 running = True
 tick = 0
 
