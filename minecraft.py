@@ -73,7 +73,7 @@ mobs = [
 
 
 
-def compresser(texte):
+def compresser(texte: str) -> str:
     # Compresser le texte en utilisant zlib
     donnees_compressees = zlib.compress(texte.encode('utf-8'))
     # Encoder les données compressées en Base64 pour garantir des caractères imprimables
@@ -81,7 +81,7 @@ def compresser(texte):
     # Convertir les données encodées en une chaîne de caractères
     return donnees_base64.decode('utf-8')
 
-def decompresser(texte_compresse):
+def decompresser(texte_compresse: str) -> str:
     # Décoder le texte compressé de Base64
     donnees_base64 = base64.b64decode(texte_compresse.encode('utf-8'))
     # Décompresser les données en utilisant zlib
@@ -126,7 +126,7 @@ degats_de_chute = 0
 
 from random import randint
 
-def modify_pos_mob(mobs, x, y, TAILLE_PIXEL):
+def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int) -> list:
     for mob in mobs:
         SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
         
@@ -210,7 +210,7 @@ def creer_map():
     
     return map
 
-def craft(valeur_recherchee):
+def craft(valeur_recherchee: list) -> str:
     craft_table = {
         
     }
@@ -220,7 +220,7 @@ def craft(valeur_recherchee):
         pass
     return 'air'  # Retourne None si aucune correspondance n'est trouvée
 
-def cuire(valeur_recherchee):
+def cuire(valeur_recherchee: str) -> str:
     furnace_table = {
         'bois': 'charcoal',
         'pork': 'cooked_pork',
@@ -268,7 +268,7 @@ ecran = pygame.display.set_mode((LARGEUR_ECRAN, HAUTEUR_ECRAN))
 pygame.display.set_caption("Minecraft 1.0")
 clock = pygame.time.Clock()
 
-def verifier_collision(x, y):
+def verifier_collision(x: float, y: float) -> bool:
     # Convertir les coordonnées en indices de la grille
     grid_x = round(x / TAILLE_PIXEL)
     grid_y = round(y / TAILLE_PIXEL)
@@ -278,7 +278,7 @@ def verifier_collision(x, y):
         return map[grid_y][grid_x] != 'bordure'
     return False
 
-def bloc_pos(x, y):
+def bloc_pos(x: float, y: float) -> str:
     # Convertir les coordonnées en indices de la grille
     grid_x = int(x / TAILLE_PIXEL)
     grid_y = int(y / TAILLE_PIXEL)
@@ -288,7 +288,7 @@ def bloc_pos(x, y):
         print('error: return map[grid_y][grid_x]')
         return None
 
-def modify(x, y, bloc):
+def modify(x: float, y: float, bloc: str) -> None:
     # Convertir les coordonnées en indices de la grille
     grid_x = int(x / TAILLE_PIXEL)
     grid_y = int(y / TAILLE_PIXEL)
@@ -303,7 +303,7 @@ def draw_health_bar(screen, x, y, health, max_health, width, height):
 
 
 
-def dessiner_map(decalage_x, decalage_y):
+def dessiner_map(decalage_x: float, decalage_y: float) -> None:
     for y in range(HAUTEUR_MAP):
         for x in range(LARGEUR_MAP):
             bloc_x = x * TAILLE_PIXEL - int(decalage_x)
@@ -337,7 +337,7 @@ def dessiner_mobs():
         y_drop = int(drop['y'] - decalage_y)
         ecran.blit(image(drop['name']), (x_drop, y_drop))
 
-def dessiner_hotbar(case_inventaire, inventaire):
+def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
@@ -365,7 +365,7 @@ def dessiner_hotbar(case_inventaire, inventaire):
         if i == case_inventaire - 1:
             pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 2)
 
-def dessiner_inventaire(case_inventaire, inventaire):
+def dessiner_inventaire(case_inventaire: list, inventaire: list) -> None:
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
@@ -393,7 +393,7 @@ def dessiner_inventaire(case_inventaire, inventaire):
             pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
             pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
 
-def afficher_xp(xp):
+def afficher_xp(xp: int) -> None:
     niveau, xp_actuel = divmod(xp, 10)
     largeur_barre = 182 * 1.5
     epaisseur = TAILLE_PIXEL / 4
@@ -428,7 +428,7 @@ def afficher_xp(xp):
     # Affichage de la barre d'XP sur l'écran
     ecran.blit(barre_surface, (x, y))
 
-def dessiner_coeurs(nombre_coeurs, nombre_cases_inventaire, vies):
+def dessiner_coeurs(nombre_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:
     # Charger l'image du cÅ“ur
     image_heart = image('heart')
     image_demi_heart = image('demi_heart')
