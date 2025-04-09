@@ -6,6 +6,9 @@ import zlib
 import base64
 from dataclasses import dataclass
 from typing import List, Dict
+import json
+import inspect
+import os
 
 # Initialisation de Pygame
 pygame.init()
@@ -463,7 +466,7 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
 
-def unit_test_variables() -> None:
+def unit_test_variables_types() -> None:
     type_mapping = {
         "bool": bool,
         "int": int,
@@ -471,6 +474,7 @@ def unit_test_variables() -> None:
         "str": str,
         "list": list,
         "dict": dict,
+        "tuple": tuple,
     }
 
     dict_type_var = {
@@ -491,6 +495,61 @@ def unit_test_variables() -> None:
         if type(var_value) != expected_type:
             print(f"Erreur du type de {variable}: expected {expected_type.__name__}, got {type(var_value).__name__}")
             exit()
+
+
+
+def track_variables(output_filename="variables.json"):
+    """
+    Inspecte toutes les variables globales et locales, détecte leur type, leur portée et leur valeur,
+    et exporte ces informations dans un fichier JSON situé dans le même répertoire que le script.
+    """
+    # Obtenir le répertoire du script
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(script_directory, output_filename)
+
+    # Obtenir le cadre actuel (frame) pour inspecter les variables locales
+    current_frame = inspect.currentframe()
+    outer_frame = current_frame.f_back  # Récupère le cadre appelant
+
+    # Dictionnaire pour stocker les informations des variables
+    variables_info = {}
+
+    def safe_serialize(value):
+        """
+        Tente de sérialiser une valeur pour JSON. Si ce n'est pas possible,
+        retourne une représentation sous forme de chaîne.
+        """
+        try:
+            json.dumps(value)  # Test si la valeur est sérialisable
+            return value
+        except (TypeError, OverflowError):
+            return str(value)  # Convertit en chaîne si non sérialisable
+
+    # Inspecter les variables locales
+    local_vars = outer_frame.f_locals
+    for name, value in local_vars.items():
+        variables_info[name] = {
+            "scope": "local",
+            "type": type(value).__name__,
+            "value": safe_serialize(value)
+        }
+
+    # Inspecter les variables globales
+    global_vars = outer_frame.f_globals
+    for name, value in global_vars.items():
+        if name not in variables_info:  # Éviter d'écraser les locales si elles portent le même nom
+            variables_info[name] = {
+                "scope": "global",
+                "type": type(value).__name__,
+                "value": safe_serialize(value)
+            }
+
+    # Exporter les données dans un fichier JSON
+    with open(output_path, "w") as json_file:
+        json.dump(variables_info, json_file, indent=4)
+
+    print(f"Les informations des variables ont été exportées dans '{output_path}'.")
+
 
 
 
@@ -574,7 +633,10 @@ while running:
     pygame.display.flip()
     
     # Verification des types de variables
-    unit_test_variables()
+    unit_test_variables_types()
+
+    # exportation des infos importantes sur les variables
+    track_variables()
     
     # Contrôle de la fréquence d'images
     clock.tick(60)
