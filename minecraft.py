@@ -16,7 +16,7 @@ pygame.init()
 # Définition des constantes
 LARGEUR_ECRAN = 1200
 HAUTEUR_ECRAN = 600
-LARGEUR_MAP, HAUTEUR_MAP = 50, 50
+LARGEUR_MAP, HAUTEUR_MAP = 10, 10
 TAILLE_PIXEL = 50
 
 @dataclass
@@ -72,7 +72,6 @@ mobs = [
     Entity.from_species(zombie, id=1, coords={"x": 150, "y": 300}),
     Entity.from_species(spider, id=2, coords={"x": 100, "y": 400}),
 ]
-
 
 
 def compresser(texte: str) -> str:
@@ -185,9 +184,9 @@ def creer_map():
         map[0][i] = 'bordure'
         map[-1][i] = 'bordure'
         
-    
     # Stuff de base
-    map[1][1:3] = 'coffre', 'etabli', 'furnace_burned'
+    map[1][1:4] = ['coffre', 'etabli', 'furnace']
+    
     
     # Arbre
     def arbre(x, y):
@@ -201,11 +200,6 @@ def creer_map():
         map[y-3][x] = 'leaves'
     
     arbre(6, 5)
-    arbre(7, 5)
-    arbre(14, 20)
-    arbre(15, 20)
-    arbre(9, 25)
-    arbre(10, 25)
     
     return map
 
