@@ -126,13 +126,12 @@ degats_de_chute = 0
 
 from random import randint
 
-def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int) -> list:
+def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int) -> list:
     for mob in mobs:
         SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
         
         # Convertir les coordonnées du joueur en unités de la grille
-        player_x = x
-        player_y = y
+        player_x, player_y = x, y
         
         if mob.species == 'enderman' and tick % 60 == 0:
             i = 0
@@ -240,14 +239,16 @@ if not 'map' in locals():
 
 
 # Couleurs
-CIEL_SOIR = (15, 5, 107)
-CIEL = (0, 191, 255)
-JOUEUR = (255, 140, 0)
-INVENTAIRE = (169, 169, 169)
-INVENTAIRE_VIDE = (169, 169, 169)
-RED = (255, 0, 0)
-GREEN = (0, 225, 0)
-air = (0, 150, 0)
+Couleurs = {
+    "CIEL_SOIR": (15, 5, 107),
+    "CIEL": (0, 191, 255),
+    "JOUEUR": (255, 140, 0),
+    "INVENTAIRE": (169, 169, 169),
+    "INVENTAIRE_VIDE": (169, 169, 169),
+    "RED": (255, 0, 0),
+    "GREEN": (0, 225, 0),
+    "AIR": (0, 150, 0)
+}
 
 necessite = {
     'pierre': ['pioche', 'inventaire_vide'],
@@ -297,8 +298,8 @@ def modify(x: float, y: float, bloc: str) -> None:
 # Fonction pour dessiner la barre de vie
 def draw_health_bar(screen, x, y, health, max_health, width, height):
     ratio = health / max_health
-    pygame.draw.rect(screen, RED, (x, y, width, height))
-    pygame.draw.rect(screen, GREEN, (x, y, width * ratio, height))
+    pygame.draw.rect(screen, Couleurs["RED"], (x, y, width, height))
+    pygame.draw.rect(screen, Couleurs["GREEN"], (x, y, width * ratio, height))
 
 
 
@@ -309,10 +310,7 @@ def dessiner_map(decalage_x: float, decalage_y: float) -> None:
             bloc_x = x * TAILLE_PIXEL - int(decalage_x)
             bloc_y = y * TAILLE_PIXEL - int(decalage_y)
             if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
-                try:
-                    pygame.draw.rect(ecran, eval(map[y][x].upper()), (bloc_x, bloc_y, TAILLE_PIXEL, TAILLE_PIXEL))
-                except Exception as e:
-                    ecran.blit(image(map[y][x]), (bloc_x, bloc_y))
+                ecran.blit(image(map[y][x]), (bloc_x, bloc_y))
 
 def dessiner_mobs():
     # Dessin des mobs
@@ -331,6 +329,8 @@ def dessiner_mobs():
         
         draw_health_bar(ecran, bar_x, bar_y, mob.hearts, 5, bar_width, bar_height)
     
+
+def dessiner_drops(drops: list) -> None:
     # Dessin des drops
     for drop in drops:
         x_drop = int(drop['x'] - decalage_x)
@@ -349,13 +349,8 @@ def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
         y = HAUTEUR_ECRAN - TAILLE_PIXEL
         
         # Dessiner la case de l'inventaire
-        pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
-        try:
-            # Essayer de dessiner un rectangle coloré pour l'objet
-            pygame.draw.rect(ecran, eval(inventaire[i].upper()), (x+2, y+2, TAILLE_PIXEL-4, TAILLE_PIXEL-4))
-        except:
-            # Si ce n'est pas possible, afficher l'image de l'objet
-            ecran.blit(image(inventaire[i]), (x+2, y+2))
+        pygame.draw.rect(ecran, Couleurs["INVENTAIRE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
+        ecran.blit(image(inventaire[i]), (x+2, y+2))
         
         # Dessiner la bordure autour de la case
         pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
@@ -378,16 +373,13 @@ def dessiner_inventaire(case_inventaire: list, inventaire: list) -> None:
             y = HAUTEUR_ECRAN - (TAILLE_PIXEL * (n + 2.5))
             
             # Dessiner la case de l'inventaire
-            pygame.draw.rect(ecran, INVENTAIRE, (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
+            pygame.draw.rect(ecran, Couleurs["INVENTAIRE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
             try:
-                # Essayer de dessiner un rectangle coloré pour l'objet
-                pygame.draw.rect(ecran, eval(inventaire[i + nombre_cases + n*nombre_cases].upper()), (x+2, y+2, TAILLE_PIXEL-4, TAILLE_PIXEL-4))
+                # Si ce n'est pas possible, afficher l'image de l'objet
+                ecran.blit(image(inventaire[i + nombre_cases + n*nombre_cases]), (x+2, y+2))
             except IndexError:
                 # Case vide, ne rien faire
                 pass
-            except:
-                # Si ce n'est pas possible, afficher l'image de l'objet
-                ecran.blit(image(inventaire[i + nombre_cases + n*nombre_cases]), (x+2, y+2))
             
             # Dessiner la bordure autour de la case
             pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
@@ -579,20 +571,23 @@ while running:
 
 
     # Logique du jeu
-    ecran.fill(CIEL)
+    ecran.fill(Couleurs["CIEL"])
     
 
     # Dessiner la map
     dessiner_map(decalage_x, decalage_y)
 
     # Modification de la position des mobs
-    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL)
+    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL, tick)
     
     # Dessiner les mobs
     dessiner_mobs()
     
+    # Dessiner les drops
+    dessiner_drops(drops)
+    
     # Dessiner le joueur
-    pygame.draw.rect(ecran, JOUEUR, (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
+    pygame.draw.rect(ecran, Couleurs["JOUEUR"], (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
     
     # Dessiner l'inventaire
     dessiner_hotbar(case_inventaire, inventaire)
