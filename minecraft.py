@@ -314,8 +314,8 @@ def dessiner_map(decalage_x: float, decalage_y: float) -> None:
 def dessiner_mobs():
     # Dessin des mobs
     for mob in mobs:
-        x_mob = int(mob.coords['x'] - decalage_x + (LARGEUR_ECRAN // 2))
-        y_mob = int(mob.coords['y'] - decalage_y + (HAUTEUR_ECRAN // 2))
+        x_mob = int(mob.coords['x'] - x + (LARGEUR_ECRAN // 2))
+        y_mob = int(mob.coords['y'] - y + (HAUTEUR_ECRAN // 2))
         image_mob = image(mob.species)
         
         ecran.blit(image_mob, (x_mob, y_mob))
@@ -435,7 +435,7 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
 def F3_panel():
-    vars = ["x", "y", "decalage_x", "decalage_y"]
+    vars = ["x", "y"]
     
     # Calcule la taille dynamique de la police
     font_size = (HAUTEUR_ECRAN // len(vars))
@@ -566,7 +566,6 @@ def track_variables(output_filename="variables.json"):
 
 # Boucle principale
 x, y = 0, 0
-decalage_x, decalage_y = x, y
 running = True
 tick = 0
 
@@ -596,10 +595,12 @@ while running:
     # Déplacement du joueur
     if keys[pygame.K_q]:
         x -= 1
-        decalage_x -= 1
     if keys[pygame.K_d]:
         x += 1
-        decalage_x += 1
+    if keys[pygame.K_z]:
+        y -= 1
+    if keys[pygame.K_s]:
+        y += 1
         
     # print(bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)))
 
@@ -608,7 +609,7 @@ while running:
     ecran.fill(Couleurs["CIEL"])
     
     # Dessiner la map
-    dessiner_map(decalage_x, decalage_y)
+    dessiner_map(x, y)
 
     # Modification de la position des mobs
     mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL, tick)
