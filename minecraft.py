@@ -281,13 +281,12 @@ def verifier_collision(x: float, y: float) -> bool:
 
 def bloc_pos(x: float, y: float) -> str:
     # Convertir les coordonnées en indices de la grille
-    grid_x = int(x / TAILLE_PIXEL)
-    grid_y = int(y / TAILLE_PIXEL)
+    grid_x = int(x // TAILLE_PIXEL)
+    grid_y = int(y // TAILLE_PIXEL)
     try:
         return map[grid_y][grid_x]
     except:
-        print('error: return map[grid_y][grid_x]')
-        return None
+        raise IndexError(f"error: return map[{grid_y}][{grid_x}] in bloc_pos()")
 
 def modify(x: float, y: float, bloc: str) -> None:
     # Convertir les coordonnées en indices de la grille
@@ -447,8 +446,8 @@ def F3_panel():
     
     for element in vars:
         # Vérification sécurisée de l'existence de la variable
-        if element in locals():
-            lines.append(f"{element}: {locals()[element]}")
+        if element in globals():
+            lines.append(f"{element}: {globals()[element]}")
         else:
             raise NameError(f"Variable '{element}' non définie (tentative d'y acceder depuis F3_panel())")
     
@@ -566,8 +565,8 @@ def track_variables(output_filename="variables.json"):
 
 
 # Boucle principale
-x, y = 200, 200
-decalage_x, decalage_y = 0, 0
+x, y = 0, 0
+decalage_x, decalage_y = -x, -y
 running = True
 tick = 0
 
@@ -581,8 +580,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            if event.key == pygame.K_SPACE and ( bloc_pos((x + (TAILLE_PIXEL / 2)), (y + (TAILLE_PIXEL / 2))) != 'air' ):
-                saut = 10
+
             if event.key == pygame.K_RIGHT:
                 case_inventaire += 1
             if event.key == pygame.K_LEFT:
@@ -597,21 +595,13 @@ while running:
     
     # Déplacement du joueur
     if keys[pygame.K_q]:
-        x -= vitesse
-        decalage_x -= vitesse
+        x -= 1
+        decalage_x -= 1
     if keys[pygame.K_d]:
-        x += vitesse
-        decalage_x += vitesse
+        x += 1
+        decalage_x += 1
         
-    # Gravité
-    if saut > 0:
-        y -= 2
-        decalage_y -= 2
-        saut -= 1
-    else:
-        if bloc_pos((x + (TAILLE_PIXEL / 2)), (y + (TAILLE_PIXEL / 2))) == 'air':
-            y += 1
-            decalage_y += 1
+    # print(bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)))
 
 
     # Logique du jeu
