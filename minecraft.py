@@ -436,6 +436,29 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
                 
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
+def F4_panel():
+    # Capture les variables locales
+    vars = globals()
+    
+    # Convertit le dictionnaire en une chaîne formatée
+    var_str = "\n".join([f"{key}: {value}" for key, value in vars.items() if not callable(value) and not key.startswith("__")])
+    
+    # Divise le texte en lignes
+    lines = var_str.split('\n')
+    
+    # Calcule la taille dynamique de la police en fonction du nombre de lignes
+    font_size = (HAUTEUR_ECRAN // len(lines))
+    font = pygame.font.Font(None, font_size)
+    
+    # Position initiale pour dessiner le texte
+    y_offset = 0
+    
+    for line in lines:
+        text_surface = font.render(line, True, (0, 0, 0))
+        ecran.blit(text_surface, (50, y_offset))
+        y_offset += font_size  # Pas d'interligne, chaque ligne est directement sous la précédente
+
+
 
 def unit_test_variables_types() -> None:
     type_mapping = {
@@ -545,6 +568,8 @@ while running:
                 case_inventaire += 1
             if event.key == pygame.K_LEFT:
                 case_inventaire -= 1
+            if event.key == pygame.K_F3:
+                F3_panel()
     if case_inventaire > 10:
         case_inventaire = 1
     if case_inventaire < 1:
@@ -573,7 +598,6 @@ while running:
     # Logique du jeu
     ecran.fill(Couleurs["CIEL"])
     
-
     # Dessiner la map
     dessiner_map(decalage_x, decalage_y)
 
@@ -599,7 +623,10 @@ while running:
     # Dessiner la barre d'XP
     afficher_xp(xp)
     
-    
+    # Afficher le panel F4
+    if keys[pygame.K_F4]:
+        F4_panel()
+
     # Mise à jour de l'écran
     pygame.display.flip()
     
