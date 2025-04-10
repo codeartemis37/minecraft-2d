@@ -419,8 +419,7 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
     
     
     if nombre_demis_coeurs % 2 != 0:
-        print("nombre de coeurs total doit etre divisible par 2")
-        exit()
+        raise ValueError("nombre de coeurs total doit etre divisible par 2 dans dessiner_coeurs()")
     
     for i in range(nombre_demis_coeurs // 2):
         # Calcul de la position en x pour chaque cœur
@@ -435,6 +434,29 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
             image_a_afficher = image('heart_vide')
                 
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
+
+def F3_panel():
+    vars = ["x", "y"]
+    
+    # Calcule la taille dynamique de la police
+    font_size = (HAUTEUR_ECRAN // len(vars))
+    font = pygame.font.Font(None, font_size)
+    
+    y_offset = 0
+    lines = []
+    
+    for element in vars:
+        # Vérification sécurisée de l'existence de la variable
+        if element in locals():
+            lines.append(f"{element}: {locals()[element]}")
+        else:
+            raise NameError(f"Variable '{element}' non définie (tentative d'y acceder depuis F3_panel())")
+    
+    for line in lines:
+        text_surface = font.render(line, True, (0, 0, 0))
+        ecran.blit(text_surface, (50, y_offset))
+        y_offset += font_size
+
 
 def F4_panel():
     # Capture les variables locales
@@ -478,17 +500,14 @@ def unit_test_variables_types() -> None:
     for variable, type_str in dict_type_var.items():
         expected_type = type_mapping.get(type_str)
         if expected_type is None:
-            print(f"Type '{type_str}' is not recognized")
-            exit()
+            raise TypeError(f"Type '{type_str}' is not recognized dans unit_test_variables_types()")
 
         var_value = locals().get(variable, globals().get(variable))
         if var_value is None:
-            print(f"Variable '{variable}' is not defined")
-            exit()
+            raise ValueError(f"Variable '{variable}' is not defined dans unit_test_variables_types()")
 
         if type(var_value) != expected_type:
-            print(f"Erreur du type de {variable}: expected {expected_type.__name__}, got {type(var_value).__name__}")
-            exit()
+            raise TypeError(f"Erreur du type de {variable} dans unit_test_variables_types() : expected {expected_type.__name__}, got {type(var_value).__name__}")
 
 
 
@@ -623,6 +642,11 @@ while running:
     # Dessiner la barre d'XP
     afficher_xp(xp)
     
+
+    # Afficher le panel F3
+    if keys[pygame.K_F3]:
+        F3_panel()
+
     # Afficher le panel F4
     if keys[pygame.K_F4]:
         F4_panel()
