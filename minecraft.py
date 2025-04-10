@@ -16,8 +16,7 @@ pygame.init()
 # Définition des constantes
 LARGEUR_ECRAN = 1200
 HAUTEUR_ECRAN = 600
-LARGEUR_MAP = 50
-HAUTEUR_MAP = 50
+LARGEUR_MAP, HAUTEUR_MAP = 50, 50
 TAILLE_PIXEL = 50
 
 @dataclass
@@ -116,14 +115,12 @@ if not 'coeurs' in locals(): coeurs = 9
 if not 'bouffe' in locals(): bouffe = 9
 if not 'bouffe_totale' in locals(): bouffe_totale = 9
 if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
-if not 'xp' in locals(): xp = 10
+if not 'xp' in locals(): xp = 15
 case_inventaire = 1
 if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
 hearts = 20
 FORCE_JOUEUR = 2
-jour = True
 vitesse = 4
-sur_cheval = False
 saut = 0
 degats_de_chute = 0
 
@@ -398,37 +395,24 @@ def dessiner_inventaire(case_inventaire: list, inventaire: list) -> None:
 
 def afficher_xp(xp: int) -> None:
     niveau, xp_actuel = divmod(xp, 10)
-    largeur_barre = 182 * 1.5
-    epaisseur = TAILLE_PIXEL / 4
-    x = (LARGEUR_ECRAN - largeur_barre) // 2
-    y = HAUTEUR_ECRAN - TAILLE_PIXEL * 1.33
-    rayon = epaisseur / 2  # Rayon pour arrondir les coins
+    largeur_barre, epaisseur = 273, TAILLE_PIXEL / 4
+    x, y = (LARGEUR_ECRAN - largeur_barre) // 2, HAUTEUR_ECRAN - TAILLE_PIXEL * 1.33
+    rayon = epaisseur / 2
 
     # Affichage du niveau
     font = pygame.font.Font(None, 24)
-    texte = font.render(f"{int(niveau)}", True, (80, 255, 80))
-    ecran.blit(texte, texte.get_rect(center=(LARGEUR_ECRAN // 2, y - epaisseur - 10)))
+    ecran.blit(font.render(f"{int(niveau)}", True, (80, 255, 80)), 
+               (LARGEUR_ECRAN // 2, y - epaisseur - 10))
 
-    # Création d'une surface pour la barre d'XP
+    # Création et dessin de la barre d'XP
     barre_surface = pygame.Surface((largeur_barre, epaisseur), pygame.SRCALPHA)
-    
-    # Dessin du fond noir avec coins arrondis
     pygame.draw.rect(barre_surface, (0, 0, 0), (0, 0, largeur_barre, epaisseur), border_radius=int(rayon))
     
-    # Dessin des traits verts
     for i in range(int(largeur_barre * xp_actuel / 100)):
         if i % 2 == 0:
             pygame.draw.line(barre_surface, (80, 255, 80), (i, 0), (i, epaisseur))
-    
-    # Application d'un masque pour garder les coins arrondis
-    mask_surface = pygame.Surface((largeur_barre, epaisseur), pygame.SRCALPHA)
-    pygame.draw.rect(mask_surface, (255, 255, 255), (0, 0, largeur_barre, epaisseur), border_radius=int(rayon))
-    barre_surface.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-    
-    # Dessin du contour noir
+
     pygame.draw.rect(barre_surface, (0, 0, 0), (0, 0, largeur_barre, epaisseur), 1, border_radius=int(rayon))
-    
-    # Affichage de la barre d'XP sur l'écran
     ecran.blit(barre_surface, (x, y))
 
 def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:    
