@@ -61,6 +61,10 @@ class Player:
     x: float
     y: float
     xp: int
+    inventaire: list
+    effects_potions: dict
+    life: int
+    bouffe: int
 
 # Instances de MobsDefaultBySpecies
 creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.05)
@@ -79,7 +83,22 @@ mobs = [
     Entity.from_species(spider, id=2, coords={"x": 100, "y": 400}),
 ]
 
-player = Player(0.0, 0.0, 15)
+player = Player(
+    0.0,
+    0.0,
+    15,
+    ['inventaire_vide'] * 38 + ['bois'] *2,
+    {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}},
+    20,
+    20
+)
+
+
+
+CONSTANTES = {
+    'max_life_en_demis_coeurs': 20,
+    'max_bouffe_en_demis_bouffe': 20
+}
 
 def compresser(texte: str) -> str:
     # Compresser le texte en utilisant zlib
@@ -97,10 +116,6 @@ def decompresser(texte_compresse: str) -> str:
     # Convertir les données décompressées en une chaîne de caractères
     return donnees_decompressees.decode('utf-8')
 
-chaine = input('>>>')
-if chaine:
-    hearts, x, y, inventaire, mobs, bouffe, vitesse, effects_potions, xp = eval(decompresser(chaine))
-
 mangeable = {
     'pork': [5.0, 0],
     'cooked_pork': [10.0, 0],
@@ -116,19 +131,7 @@ modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
     'verre1': 'verre2'
 }
-if 'coeurs' in locals() and coeurs < 1: coeurs = 9
-if not 'coeurs' in locals(): coeurs = 9
-if not 'bouffe' in locals(): bouffe = 9
-if not 'bouffe_totale' in locals(): bouffe_totale = 9
-if not 'effects_potions' in locals(): effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
-if not 'xp' in locals(): xp = 15
 case_inventaire = 1
-if not 'inventaire' in locals(): inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
-hearts = 20
-FORCE_JOUEUR = 2
-vitesse = 4
-saut = 0
-degats_de_chute = 0
 
 from random import randint
 
@@ -360,7 +363,7 @@ def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
         if i == case_inventaire - 1:
             pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 2)
 
-def dessiner_inventaire(case_inventaire: list, inventaire: list) -> None:
+def dessiner_inventaire(inventaire: list) -> None:
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
@@ -407,28 +410,27 @@ def afficher_xp(xp: int) -> None:
     pygame.draw.rect(barre_surface, (0, 0, 0), (0, 0, largeur_barre, epaisseur), 1, border_radius=int(rayon))
     ecran.blit(barre_surface, (x, y))
 
-def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies: int) -> None:    
-    largeur_totale = nombre_cases_inventaire * TAILLE_PIXEL
+def dessiner_coeurs(demis_coeurs: int) -> None:    
+    largeur_totale = (CONSTANTES["max_life_en_demis_coeurs"]//2) * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2 - (TAILLE_PIXEL/2)
     y_coeur = HAUTEUR_ECRAN - 2 * TAILLE_PIXEL  # Juste au-dessus de l'inventaire
     
     # Tremblement si peu de vies (moins de 4 demis coeurs)
-    if vies <= 4:
+    if demis_coeurs <= 4:
         y_coeur += randint(-5, 5)
         position_x_debut += randint(-5, 5)
     
-    
-    if nombre_demis_coeurs % 2 != 0:
+    if CONSTANTES["max_life_en_demis_coeurs"] % 2 != 0:
         raise ValueError("nombre de coeurs total doit etre divisible par 2 dans dessiner_coeurs()")
-    
-    for i in range(nombre_demis_coeurs // 2):
+        
+    for i in range(CONSTANTES["max_life_en_demis_coeurs"]//2):
         # Calcul de la position en x pour chaque cœur
         x_coeur = position_x_debut + (i * int(TAILLE_PIXEL / 2))
         
         # Détermine quelle image afficher en fonction des vies restantes
-        if vies >= (i + 1) * 2:  # Si le joueur a un cœur entier à cet emplacement
+        if demis_coeurs >= (i + 1) * 2:  # Si le joueur a un cœur entier à cet emplacement
             image_a_afficher = image('heart')
-        elif vies == (i * 2) + 1:  # Si le joueur a un demi-cœur à cet emplacement
+        elif demis_coeurs == (i * 2) + 1:  # Si le joueur a un demi-cœur à cet emplacement
             image_a_afficher = image('demi_heart')
         else:  # Si le joueur n'a plus de vie à cet emplacement
             image_a_afficher = image('heart_vide')
@@ -623,14 +625,14 @@ while running:
     pygame.draw.rect(ecran, Couleurs["JOUEUR"], (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
     
     # Dessiner l'inventaire
-    dessiner_hotbar(case_inventaire, inventaire)
-    dessiner_inventaire(case_inventaire, inventaire)
+    dessiner_hotbar(case_inventaire, player.inventaire)
+    dessiner_inventaire(player.inventaire)
     
     # Dessiner les coeurs
-    dessiner_coeurs(20, 10, hearts)
+    dessiner_coeurs(player.life)
     
     # Dessiner la barre d'XP
-    afficher_xp(xp)
+    afficher_xp(player.xp)
     
 
     # Afficher le panel F3
@@ -677,7 +679,6 @@ while running:
             running = False
     sleep(0.1)
 print()
-print(compresser(f'[{hearts}, {x}, {y}, {inventaire}, {mobs}, {bouffe}, {vitesse}, {effects_potions}, {xp}]'))
 # Quitter Pygame proprement
 pygame.quit()
 input("vous pouvez fermer la fenetre")
