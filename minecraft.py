@@ -57,6 +57,12 @@ class Entity:
         )
 
 @dataclass
+class Item:
+    x: float
+    y: float
+    name: str
+
+@dataclass
 class Player:
     x: float
     y: float
@@ -67,14 +73,14 @@ class Player:
     bouffe: int
 
 # Instances de MobsDefaultBySpecies
-creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.05)
-zombie = MobsDefaultBySpecies("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05)
-spider = MobsDefaultBySpecies("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.05)
-cochon = MobsDefaultBySpecies("cochon", 5, 5, ['pork'], False, 5, 0.05)
-cheval = MobsDefaultBySpecies("cheval", 5, 5, ['cuir'], False, 5, 0.05)
-mouton = MobsDefaultBySpecies("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.05)
-enderman = MobsDefaultBySpecies("enderman", 5, 5, ['enderpearl'], True, 5, 0.05)
-vache = MobsDefaultBySpecies("vache", 5, 5, ['cuir'], False, 5, 0.05)
+creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.5)
+zombie = MobsDefaultBySpecies("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.5)
+spider = MobsDefaultBySpecies("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.5)
+cochon = MobsDefaultBySpecies("cochon", 5, 5, ['pork'], False, 5, 0.5)
+cheval = MobsDefaultBySpecies("cheval", 5, 5, ['cuir'], False, 5, 0.5)
+mouton = MobsDefaultBySpecies("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.5)
+enderman = MobsDefaultBySpecies("enderman", 5, 5, ['enderpearl'], True, 5, 0.5)
+vache = MobsDefaultBySpecies("vache", 5, 5, ['cuir'], False, 5, 0.5)
 
 # Création des entités à partir des espèces par défaut
 mobs = [
@@ -97,7 +103,8 @@ player = Player(
 
 CONSTANTES = {
     'max_life_en_demis_coeurs': 20,
-    'max_bouffe_en_demis_bouffe': 20
+    'max_bouffe_en_demis_bouffe': 20,
+    'solides": ["bordure"]
 }
 
 def compresser(texte: str) -> str:
@@ -124,16 +131,13 @@ mangeable = {
     'rotten_flesh': [5.0, 2]
 }
 
-poison = 0.0
 drops = []
-incassables = ['air', 'bordure']
 modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
     'verre1': 'verre2'
 }
 case_inventaire = 1
 
-from random import randint
 
 def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int) -> list:
     for mob in mobs:
@@ -152,7 +156,7 @@ def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int)
                 if abs(dx) < 3 * TAILLE_PIXEL and abs(dy) < 3 * TAILLE_PIXEL:
                     break
                 testx, testy = randint(1, 40) * TAILLE_PIXEL, randint(1, 40) * TAILLE_PIXEL
-                if not bloc_pos(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in incassables:
+                if not bloc_pos(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in CONSTANTES["solides"]:
                     mob.coords['x'] = testx
                     mob.coords['y'] = testy
             
@@ -165,15 +169,15 @@ def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int)
         est_araignee = mob.species == 'spider'
         
         # Déplacement horizontal
-        if dx > 0 and (est_araignee or not bloc_pos(centre_x + SPEED, centre_y) in incassables):
+        if dx > 0 and (est_araignee or not bloc_pos(centre_x + SPEED, centre_y) in CONSTANTES["solides"]):
             mob.coords['x'] += SPEED
-        elif dx < 0 and (est_araignee or not bloc_pos(centre_x - SPEED, centre_y) in incassables):
+        elif dx < 0 and (est_araignee or not bloc_pos(centre_x - SPEED, centre_y) in CONSTANTES["solides"]):
            mob.coords['x'] -= SPEED
         
         # Déplacement vertical
-        if dy > 0 and (est_araignee or not bloc_pos(centre_x, centre_y + SPEED) in incassables):
+        if dy > 0 and (est_araignee or not bloc_pos(centre_x, centre_y + SPEED) in CONSTANTES["solides"]):
             mob.coords['y'] += SPEED
-        elif dy < 0 and (est_araignee or not bloc_pos(centre_x, centre_y - SPEED) in incassables):
+        elif dy < 0 and (est_araignee or not bloc_pos(centre_x, centre_y - SPEED) in CONSTANTES["solides"]):
             mob.coords['y'] -= SPEED
 
         # Débogage : Afficher les valeurs intermédiaires
@@ -236,9 +240,7 @@ def cuire(valeur_recherchee: str) -> str:
         pass
     return 'air'  # Retourne None si aucune correspondance n'est trouvée...
 
-# Appel de la fonction
-if not 'map' in locals():
-    map = creer_map()
+creer_map()
 
 
 
@@ -251,7 +253,9 @@ Couleurs = {
     "INVENTAIRE_VIDE": (169, 169, 169),
     "RED": (255, 0, 0),
     "GREEN": (0, 225, 0),
-    "AIR": (0, 150, 0)
+    "AIR": (0, 150, 0),
+    "GRIS_FONCE": (100, 100, 100),
+    "GRIS_TRES_FONCE": (50, 50, 50)
 }
 
 necessite = {
@@ -328,24 +332,22 @@ def dessiner_mobs():
         bar_width = image_mob.get_width()
         bar_height = 10
         bar_x = x_mob
-        bar_y = y_mob + image_mob.get_height() - 5
+        bar_y = y_mob + image_mob.get_height() - (bar_height//2)
         
-        draw_health_bar(ecran, bar_x, bar_y, mob.hearts, 5, bar_width, bar_height)
+        draw_health_bar(ecran, bar_x, bar_y, mob.hearts, (bar_height//2), bar_width, bar_height)
     
 
 def dessiner_drops(drops: list) -> None:
     # Dessin des drops
     for drop in drops:
-        x_drop = int(drop['x'] - decalage_x)
-        y_drop = int(drop['y'] - decalage_y)
-        ecran.blit(image(drop['name']), (x_drop, y_drop))
+        x_drop = int(drop.x - decalage_x)
+        y_drop = int(drop.y - decalage_y)
+        ecran.blit(image(drop.name), (x_drop, y_drop))
 
 def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
-    couleur_bordure = (100, 100, 100)  # Gris très foncé
-    couleur_bordure2 = (50, 50, 50)  # Gris encore plus foncé
     
     for i in range(nombre_cases):
         x = position_x_debut + (i * TAILLE_PIXEL)
@@ -356,8 +358,8 @@ def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
         ecran.blit(image(inventaire[i]), (x+2, y+2))
         
         # Dessiner la bordure autour de la case
-        pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
-        pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
+        pygame.draw.rect(ecran, Couleurs["GRIS_FONCE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
+        pygame.draw.rect(ecran, Couleurs["GRIS_TRES_FONCE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
         
         # Mettre en évidence la case sélectionnée
         if i == case_inventaire - 1:
@@ -367,8 +369,6 @@ def dessiner_inventaire(inventaire: list) -> None:
     nombre_cases = 10
     largeur_totale = nombre_cases * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
-    couleur_bordure = (100, 100, 100)  # Gris très foncé
-    couleur_bordure2 = (50, 50, 50)  # Gris encore plus foncé
     
     for n in range(3):
         for i in range(nombre_cases):
@@ -385,8 +385,8 @@ def dessiner_inventaire(inventaire: list) -> None:
                 pass
             
             # Dessiner la bordure autour de la case
-            pygame.draw.rect(ecran, couleur_bordure2, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
-            pygame.draw.rect(ecran, couleur_bordure, (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
+            pygame.draw.rect(ecran, Couleurs["GRIS_TRES_FONCE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 3)
+            pygame.draw.rect(ecran, Couleurs["GRIS_FONCE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 1)
 
 def afficher_xp(xp: int) -> None:
     niveau, xp_actuel = divmod(xp, 10)
@@ -580,17 +580,14 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-
             if event.key == pygame.K_RIGHT:
                 case_inventaire += 1
             if event.key == pygame.K_LEFT:
                 case_inventaire -= 1
             if event.key == pygame.K_F3:
                 F3_panel()
-    if case_inventaire > 10:
-        case_inventaire = 1
-    if case_inventaire < 1:
-        case_inventaire = 10
+    case_inventaire = (case_inventaire - 1) % 10 + 1
+
     keys = pygame.key.get_pressed()
     
     # Déplacement du joueur
