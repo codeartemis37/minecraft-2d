@@ -56,6 +56,12 @@ class Entity:
             speed=species_data.speed,
         )
 
+@dataclass
+class Player:
+    x: float
+    y: float
+    xp: int
+
 # Instances de MobsDefaultBySpecies
 creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.05)
 zombie = MobsDefaultBySpecies("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.05)
@@ -73,6 +79,7 @@ mobs = [
     Entity.from_species(spider, id=2, coords={"x": 100, "y": 400}),
 ]
 
+player = Player(0.0, 0.0, 15)
 
 def compresser(texte: str) -> str:
     # Compresser le texte en utilisant zlib
@@ -104,7 +111,7 @@ mangeable = {
 
 poison = 0.0
 drops = []
-incassables = ['air', 'sortie', 'bordure', 'fleche', 'case', 'gris']
+incassables = ['air', 'bordure']
 modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
     'verre1': 'verre2'
@@ -308,8 +315,8 @@ def dessiner_map(decalage_x: float, decalage_y: float) -> None:
 def dessiner_mobs():
     # Dessin des mobs
     for mob in mobs:
-        x_mob = int(mob.coords['x'] - x + (LARGEUR_ECRAN // 2))
-        y_mob = int(mob.coords['y'] - y + (HAUTEUR_ECRAN // 2))
+        x_mob = int(mob.coords['x'] - player.x + (LARGEUR_ECRAN // 2))
+        y_mob = int(mob.coords['y'] - player.y + (HAUTEUR_ECRAN // 2))
         image_mob = image(mob.species)
         
         ecran.blit(image_mob, (x_mob, y_mob))
@@ -429,20 +436,19 @@ def dessiner_coeurs(nombre_demis_coeurs: int, nombre_cases_inventaire: int, vies
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
 def F3_panel():
-    vars = ["x", "y"]
+    vars = ["player.x", "player.y"]
     
     # Calcule la taille dynamique de la police
-    font_size = (HAUTEUR_ECRAN // len(vars))
+    font_size = min(HAUTEUR_ECRAN // len(vars), LARGEUR_ECRAN // max(len(var) for var in vars))
     font = pygame.font.Font(None, font_size)
     
     y_offset = 0
     lines = []
     
     for element in vars:
-        # Vérification sécurisée de l'existence de la variable
-        if element in globals():
-            lines.append(f"{element}: {globals()[element]}")
-        else:
+        try:
+            lines.append(f"{element}: {eval(element)}")
+        except:
             raise NameError(f"Variable '{element}' non définie (tentative d'y acceder depuis F3_panel())")
     
     for line in lines:
@@ -559,7 +565,6 @@ def track_variables(output_filename="variables.json"):
 
 
 # Boucle principale
-x, y = 0, 0
 running = True
 tick = 0
 
@@ -588,13 +593,13 @@ while running:
     
     # Déplacement du joueur
     if keys[pygame.K_q]:
-        x -= 1
+        player.x -= 1
     if keys[pygame.K_d]:
-        x += 1
+        player.x += 1
     if keys[pygame.K_z]:
-        y -= 1
+        player.y -= 1
     if keys[pygame.K_s]:
-        y += 1
+        player.y += 1
         
     # print(bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)))
 
@@ -603,10 +608,10 @@ while running:
     ecran.fill(Couleurs["CIEL"])
     
     # Dessiner la map
-    dessiner_map(x, y)
+    dessiner_map(player.x, player.y)
 
     # Modification de la position des mobs
-    mobs = modify_pos_mob(mobs, x, y, TAILLE_PIXEL, tick)
+    mobs = modify_pos_mob(mobs, player.x, player.y, TAILLE_PIXEL, tick)
     
     # Dessiner les mobs
     dessiner_mobs()
