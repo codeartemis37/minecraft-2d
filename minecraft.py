@@ -106,7 +106,8 @@ CONSTANTES = {
     'max_bouffe_en_demis_bouffe': 20,
     'solides': ["bordure"],
     'nombre_lignes_inventaire': 3,
-    'nombre_cases_hotbar': 10
+    'nombre_cases_hotbar': 10,
+    'nombre_cases_inventaire': 27
 }
 
 def compresser(texte: str) -> str:
@@ -242,7 +243,7 @@ def cuire(valeur_recherchee: str) -> str:
         pass
     return 'air'  # Retourne None si aucune correspondance n'est trouvée...
 
-creer_game_map()
+game_map = creer_game_map()
 
 
 
@@ -368,7 +369,7 @@ def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
 
 def dessiner_inventaire(inventaire: list) -> None:
     largeur_totale = (CONSTANTES["nombre_cases_inventaire"] // CONSTANTES["nombre_lignes_inventaire"]) * TAILLE_PIXEL
-    position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
+    position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2 - (TAILLE_PIXEL //2)
     
     for n in range(CONSTANTES["nombre_lignes_inventaire"]):
         for i in range(CONSTANTES["nombre_cases_hotbar"]):
@@ -379,7 +380,7 @@ def dessiner_inventaire(inventaire: list) -> None:
             pygame.draw.rect(ecran, Couleurs["INVENTAIRE"], (x, y, TAILLE_PIXEL, TAILLE_PIXEL))
             try:
                 # Si ce n'est pas possible, afficher l'image de l'objet
-                ecran.blit(image(inventaire[i + nombre_cases + n*nombre_cases]), (x+2, y+2))
+                ecran.blit(image(inventaire[n*CONSTANTES["nombre_cases_hotbar"] + i]), (x+2, y+2))
             except IndexError:
                 # Case vide, ne rien faire
                 pass
