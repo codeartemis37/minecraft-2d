@@ -104,7 +104,9 @@ player = Player(
 CONSTANTES = {
     'max_life_en_demis_coeurs': 20,
     'max_bouffe_en_demis_bouffe': 20,
-    'solides": ["bordure"]
+    'solides': ["bordure"],
+    'nombre_lignes_inventaire': 3,
+    'nombre_cases_hotbar': 10
 }
 
 def compresser(texte: str) -> str:
@@ -284,8 +286,8 @@ def verifier_collision(x: float, y: float) -> bool:
     
     # Vérifier si les indices sont dans les limites de la carte
     if 0 <= grid_x < LARGEUR_MAP and 0 <= grid_y < HAUTEUR_MAP:
-        return map[grid_y][grid_x] != 'bordure'
-    return False
+        return not map[grid_y][grid_x] in CONSTANTES["solides"]
+    return False #à peut etre corriger?
 
 def bloc_pos(x: float, y: float) -> str:
     # Convertir les coordonnées en indices de la grille
@@ -345,11 +347,10 @@ def dessiner_drops(drops: list) -> None:
         ecran.blit(image(drop.name), (x_drop, y_drop))
 
 def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
-    nombre_cases = 10
-    largeur_totale = nombre_cases * TAILLE_PIXEL
+    largeur_totale = CONSTANTES["nombre_cases_hotbar"] * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
     
-    for i in range(nombre_cases):
+    for i in range(CONSTANTES["nombre_cases_hotbar"]):
         x = position_x_debut + (i * TAILLE_PIXEL)
         y = HAUTEUR_ECRAN - TAILLE_PIXEL
         
@@ -366,12 +367,11 @@ def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
             pygame.draw.rect(ecran, (255, 255, 255), (x, y, TAILLE_PIXEL, TAILLE_PIXEL), 2)
 
 def dessiner_inventaire(inventaire: list) -> None:
-    nombre_cases = 10
-    largeur_totale = nombre_cases * TAILLE_PIXEL
+    largeur_totale = (CONSTANTES["nombre_cases_inventaire"] // CONSTANTES["nombre_lignes_inventaire"]) * TAILLE_PIXEL
     position_x_debut = (LARGEUR_ECRAN - largeur_totale) // 2
     
-    for n in range(3):
-        for i in range(nombre_cases):
+    for n in range(CONSTANTES["nombre_lignes_inventaire"]):
+        for i in range(CONSTANTES["nombre_cases_hotbar"]):
             x = position_x_debut + (i * TAILLE_PIXEL)
             y = HAUTEUR_ECRAN - (TAILLE_PIXEL * (n + 2.5))
             
@@ -470,7 +470,7 @@ def F4_panel():
     lines = var_str.split('\n')
     
     # Calcule la taille dynamique de la police en fonction du nombre de lignes
-    font_size = (HAUTEUR_ECRAN // len(lines))
+    font_size = min(HAUTEUR_ECRAN // len(lines), LARGEUR_ECRAN // max(len(line) for line in lines))
     font = pygame.font.Font(None, font_size)
     
     # Position initiale pour dessiner le texte
