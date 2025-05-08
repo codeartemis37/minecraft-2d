@@ -72,6 +72,27 @@ class Player:
         self.effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
         self.life = 20
         self.bouffe = 20
+        self.vitesse = TAILLE_PIXEL
+
+    def move(self, direction):
+        if not direction in ["droite", "gauche", "bas", "haut"]:
+            raise ValueError(f"direction invalide ({direction}) dans Player.move")
+        if direction == "droite":
+            self.x += 1
+        if direction == "gauche":
+            self.x -= 1
+        if direction == "bas":
+            self.y += 1
+        if direction == "haut":
+            self.y -= 1
+    
+    def apply_effects(self):
+        if self.effects_potions['poison']['durée'] > 0:
+            self.life -= 1
+            self.effects_potions['poison']['durée'] -= 0.1
+        if self.effects_potions['fatigue']['durée'] > 0:
+            self.vitesse = TAILLE_PIXEL // 2
+            self.effects_potions['fatigue']['durée'] -= 0.1
     
     def is_dead(self):
         return self.life <= 0
@@ -606,13 +627,13 @@ while running:
     
     # Déplacement du joueur
     if keys[pygame.K_q]:
-        player.x -= 1
+        player.move("gauche")
     if keys[pygame.K_d]:
-        player.x += 1
+        player.move("droite")
     if keys[pygame.K_z]:
-        player.y -= 1
+        player.move("haut")
     if keys[pygame.K_s]:
-        player.y += 1
+        player.move("bas")
         
     # print(bloc_pos(x + (TAILLE_PIXEL / 2), y + (TAILLE_PIXEL / 2)))
 
