@@ -75,6 +75,46 @@ class Player:
     def is_dead(self):
         return self.life <= 0
 
+class GameMap:
+    def __init__(self):
+        self.world = []
+
+    def generate(self):
+        # Initialisation de la carte avec des 'air'
+        self.world = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
+        # Ajout des bordures
+        for i in range(HAUTEUR_MAP):
+            self.world[i][0] = 'bordure'
+            self.world[i][-1] = 'bordure'
+            self.world[0][i] = 'bordure'
+            self.world[-1][i] = 'bordure'
+        # Stuff de base
+        self.world[1][1:4] = ['coffre', 'etabli', 'furnace']
+        # Arbre
+        def arbre(x, y):
+            self.world[y+1][x] = 'bois'
+            self.world[y][x] = 'bois'
+            self.world[y-1][x] = 'bois'
+            self.world[y-2][x] = 'bois'
+            self.world[y-2][x-1] = 'leaves'
+            self.world[y-2][x] = 'leaves'
+            self.world[y-2][x+1] = 'leaves'
+            self.world[y-3][x] = 'leaves'
+        arbre(6, 5)
+
+    # Permet d'accéder à la carte comme à une liste : game_map[y][x]
+    def __getitem__(self, idx):
+        return self.world[idx]
+    
+    def Afficher(self, decalage_x: float, decalage_y: float) -> None:
+        for y in range(HAUTEUR_MAP):
+            for x in range(LARGEUR_MAP):
+                bloc_x = x * TAILLE_PIXEL - int(decalage_x) + (LARGEUR_ECRAN // 2)
+                bloc_y = y * TAILLE_PIXEL - int(decalage_y) + (HAUTEUR_ECRAN // 2)
+                if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
+                    ecran.blit(image(self.world[y][x]), (bloc_x, bloc_y))
+
+        
 player = Player()
 
 # Création des entités à partir des espèces par défaut
@@ -161,35 +201,7 @@ def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int)
         #print(mob)
     return mobs
 
-def creer_game_map():
-    # Initialisation de la carte avec des 'air'
-    game_map = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
-    
-    # Ajout des bordures
-    for i in range(HAUTEUR_MAP):
-        game_map[i][0] = 'bordure'
-        game_map[i][-1] = 'bordure'
-        game_map[0][i] = 'bordure'
-        game_map[-1][i] = 'bordure'
-        
-    # Stuff de base
-    game_map[1][1:4] = ['coffre', 'etabli', 'furnace']
-    
-    
-    # Arbre
-    def arbre(x, y):
-        game_map[y+1][x] = 'bois'
-        game_map[y][x] = 'bois'
-        game_map[y-1][x] = 'bois'
-        game_map[y-2][x] = 'bois'
-        game_map[y-2][x-1] = 'leaves'
-        game_map[y-2][x] = 'leaves'
-        game_map[y-2][x+1] = 'leaves'
-        game_map[y-3][x] = 'leaves'
-    
-    arbre(6, 5)
-    
-    return game_map
+
 
 def craft(valeur_recherchee: list) -> str:
     craft_table = {
@@ -214,7 +226,9 @@ def cuire(valeur_recherchee: str) -> str:
         pass
     return 'air'  # Retourne None si aucune correspondance n'est trouvée...
 
-game_map = creer_game_map()
+game_map = GameMap()
+game_map.generate()
+print(game_map.world)
 
 
 
@@ -258,11 +272,10 @@ def verifier_collision(x: float, y: float) -> bool:
     
     # Vérifier si les indices sont dans les limites de la carte
     if 0 <= grid_x < LARGEUR_MAP and 0 <= grid_y < HAUTEUR_MAP:
-        return not game_map[grid_y][grid_x] in CONSTANTES["solides"]
+        return not GameMap.world[grid_y][grid_x] in CONSTANTES["solides"]
     return False #à peut etre corriger?
 
 def bloc_pos(x: float, y: float) -> str:
-    # Convertir les coordonnées en indices de la grille
     grid_x = int(x // TAILLE_PIXEL)
     grid_y = int(y // TAILLE_PIXEL)
     try:
@@ -284,14 +297,6 @@ def draw_health_bar(screen, x, y, health, max_health, width, height):
 
 
 
-
-def dessiner_game_map(decalage_x: float, decalage_y: float) -> None:
-    for y in range(HAUTEUR_MAP):
-        for x in range(LARGEUR_MAP):
-            bloc_x = x * TAILLE_PIXEL - int(decalage_x) + (LARGEUR_ECRAN // 2)
-            bloc_y = y * TAILLE_PIXEL - int(decalage_y) + (HAUTEUR_ECRAN // 2)
-            if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
-                ecran.blit(image(game_map[y][x]), (bloc_x, bloc_y))
 
 def dessiner_mobs():
     # Dessin des mobs
@@ -469,7 +474,7 @@ def F4_panel():
 
 
 def unit_test_variables_types() -> None:
-    type_game_mapping = {
+    type_mapping = {
         "bool": bool,
         "int": int,
         "float": float,
@@ -484,7 +489,7 @@ def unit_test_variables_types() -> None:
     }
 
     for variable, type_str in dict_type_var.items():
-        expected_type = type_game_mapping.get(type_str)
+        expected_type = type_mapping.get(type_str)
         if expected_type is None:
             raise TypeError(f"Type '{type_str}' is not recognized dans unit_test_variables_types()")
 
@@ -593,8 +598,8 @@ while running:
     # Logique du jeu
     ecran.fill(Couleurs["CIEL"])
     
-    # Dessiner la game_map
-    dessiner_game_map(player.x, player.y)
+    # Dessiner la GameMap.world
+    game_map.Afficher(decalage_x = player.x, decalage_y = player.y)
 
     # Modification de la position des mobs
     mobs = modify_pos_mob(mobs, player.x, player.y, TAILLE_PIXEL, tick)
