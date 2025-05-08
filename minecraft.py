@@ -72,6 +72,9 @@ class Player:
         self.effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
         self.life = 20
         self.bouffe = 20
+    
+    def is_dead(self):
+        return self.life <= 0
 
 player = Player()
 
@@ -582,6 +585,8 @@ tick = 0
 while running:
     tick += 1
     
+    if player.is_dead():
+        running = False
     # Gestion des événements
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
