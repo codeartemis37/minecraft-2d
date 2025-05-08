@@ -19,42 +19,20 @@ HAUTEUR_ECRAN = 600
 LARGEUR_MAP, HAUTEUR_MAP = 10, 10
 TAILLE_PIXEL = 50
 
-@dataclass
-class MobsDefaultBySpecies:
-    species: str
-    base_hearts: int
-    strength_attack: int
-    loot: List[str]
-    hostility: bool
-    xp: int
-    speed: float
 
-@dataclass
+
 class Entity:
-    species: str
-    id: int
-    coords: Dict[str, int]
-    hearts: int
-    strength_attack: int
-    loot: List[str]
-    hostility: bool
-    xp: int
-    speed: float
-
-    @classmethod
-    def from_species(cls, species_data: MobsDefaultBySpecies, id: int, coords: Dict[str, int]):
-        """Crée une entité à partir des données par défaut d'une espèce."""
-        return cls(
-            species=species_data.species,
-            id=id,
-            coords=coords,
-            hearts=species_data.base_hearts,
-            strength_attack=species_data.strength_attack,
-            loot=species_data.loot,
-            hostility=species_data.hostility,
-            xp=species_data.xp,
-            speed=species_data.speed,
-        )
+    def __init__(self, species: str, id: int, coords: Dict[str, int], hearts: int, strength_attack: int, loot: List[str], hostility: bool, xp: int, speed: float):
+        self.species = species
+        self.id = id
+        self.coords = coords
+        self.hearts = hearts
+        self.strength_attack = strength_attack
+        self.loot = loot
+        self.hostility = hostility
+        self.xp = xp
+        self.speed = speed
+    
 
 @dataclass
 class Item:
@@ -99,21 +77,9 @@ class Player:
 
 player = Player()
 
-# Instances de MobsDefaultBySpecies
-creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.5)
-zombie = MobsDefaultBySpecies("zombie", 5, 2, ['rotten_flesh'], True, 5, 0.5)
-spider = MobsDefaultBySpecies("spider", 5, 2, ['ficelle', 'oeil_d_araignee'], True, 5, 0.5)
-cochon = MobsDefaultBySpecies("cochon", 5, 5, ['pork'], False, 5, 0.5)
-cheval = MobsDefaultBySpecies("cheval", 5, 5, ['cuir'], False, 5, 0.5)
-mouton = MobsDefaultBySpecies("mouton", 5, 5, ['laine', 'mouton_cru'], False, 5, 0.5)
-enderman = MobsDefaultBySpecies("enderman", 5, 5, ['enderpearl'], True, 5, 0.5)
-vache = MobsDefaultBySpecies("vache", 5, 5, ['cuir'], False, 5, 0.5)
-
 # Création des entités à partir des espèces par défaut
 mobs = [
-    Entity.from_species(creeper, id=0, coords={"x": 200, "y": 200}),
-    Entity.from_species(zombie, id=1, coords={"x": 150, "y": 300}),
-    Entity.from_species(spider, id=2, coords={"x": 100, "y": 400}),
+    Entity(species="zombie", id=0, coords={"x": 0, "y": 0}, hearts=10, strength_attack=1, loot=["rotten_flesh"], hostility=True, xp=10, speed=TAILLE_PIXEL),
 ]
 
 
@@ -168,19 +134,6 @@ def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int)
         # Convertir les coordonnées du joueur en unités de la grille
         player_x, player_y = x, y
         
-        if mob.species == 'enderman' and tick % 60 == 0:
-            i = 0
-            while i < 50:
-                i += 1
-                # Calculer la direction vers le joueur
-                dx = player_x - mob.coords['x']
-                dy = player_y - mob.coords['y']
-                if abs(dx) < 3 * TAILLE_PIXEL and abs(dy) < 3 * TAILLE_PIXEL:
-                    break
-                testx, testy = randint(1, 40) * TAILLE_PIXEL, randint(1, 40) * TAILLE_PIXEL
-                if not bloc_pos(testx + (TAILLE_PIXEL / 2), testy + (TAILLE_PIXEL / 2)) in CONSTANTES["solides"]:
-                    mob.coords['x'] = testx
-                    mob.coords['y'] = testy
             
         # Calculer la direction vers le joueur
         dx = player_x - mob.coords['x']
@@ -188,18 +141,17 @@ def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int)
         
         centre_x = mob.coords['x'] + (TAILLE_PIXEL / 2)
         centre_y = mob.coords['y'] + (TAILLE_PIXEL / 2)
-        est_araignee = mob.species == 'spider'
         
         # Déplacement horizontal
-        if dx > 0 and (est_araignee or not bloc_pos(centre_x + SPEED, centre_y) in CONSTANTES["solides"]):
+        if dx > 0 or not bloc_pos(centre_x + SPEED, centre_y) in CONSTANTES["solides"]:
             mob.coords['x'] += SPEED
-        elif dx < 0 and (est_araignee or not bloc_pos(centre_x - SPEED, centre_y) in CONSTANTES["solides"]):
+        elif dx < 0 or not bloc_pos(centre_x - SPEED, centre_y) in CONSTANTES["solides"]:
            mob.coords['x'] -= SPEED
         
         # Déplacement vertical
-        if dy > 0 and (est_araignee or not bloc_pos(centre_x, centre_y + SPEED) in CONSTANTES["solides"]):
+        if dy > 0 or not bloc_pos(centre_x, centre_y + SPEED) in CONSTANTES["solides"]:
             mob.coords['y'] += SPEED
-        elif dy < 0 and (est_araignee or not bloc_pos(centre_x, centre_y - SPEED) in CONSTANTES["solides"]):
+        elif dy < 0 or not bloc_pos(centre_x, centre_y - SPEED) in CONSTANTES["solides"]:
             mob.coords['y'] -= SPEED
 
         # Débogage : Afficher les valeurs intermédiaires
