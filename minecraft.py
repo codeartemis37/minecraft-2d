@@ -62,15 +62,18 @@ class Item:
     y: float
     name: str
 
-@dataclass
+
 class Player:
-    x: float
-    y: float
-    xp: int
-    inventaire: list
-    effects_potions: dict
-    life: int
-    bouffe: int
+    def __init__(self):
+        self.x = 0.0
+        self.y = 0.0
+        self.xp = 0
+        self.inventaire = ['inventaire_vide'] * 38 + ['bois'] *2
+        self.effects_potions = {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}}
+        self.life = 20
+        self.bouffe = 20
+
+player = Player()
 
 # Instances de MobsDefaultBySpecies
 creeper = MobsDefaultBySpecies("creeper", 5, 5, ['gunpowder'], True, 5, 0.5)
@@ -89,15 +92,7 @@ mobs = [
     Entity.from_species(spider, id=2, coords={"x": 100, "y": 400}),
 ]
 
-player = Player(
-    0.0,
-    0.0,
-    15,
-    ['inventaire_vide'] * 38 + ['bois'] *2,
-    {'poison': {'durée': 0.0}, 'fatigue': {'durée': 0.0}},
-    20,
-    20
-)
+
 
 
 
@@ -438,6 +433,7 @@ def dessiner_coeurs(demis_coeurs: int) -> None:
                 
         ecran.blit(pygame.transform.scale(image_a_afficher, (int(TAILLE_PIXEL/2), int(TAILLE_PIXEL/2))), (x_coeur, y_coeur))
 
+
 def F3_panel():
     vars = ["player.x", "player.y"]
     
@@ -464,23 +460,35 @@ def F4_panel():
     # Capture les variables locales
     vars = globals()
     
-    # Convertit le dictionnaire en une chaîne formatée
-    var_str = "\n".join([f"{key}: {value}" for key, value in vars.items() if not callable(value) and not key.startswith("__")])
+    # Paramètre de longueur max par ligne
+    MAX_CARACTERES_PAR_LIGNE = 100  # À ajuster selon vos besoins
     
-    # Divise le texte en lignes
-    lines = var_str.split('\n')
+    # Génère les lignes avec découpage automatique dans une compréhension de liste
+    raw_lines = [
+        f"{key}: {value}"
+        for key, value in vars.items()
+        if not callable(value) and not key.startswith("__")
+    ]
+    # Découpe chaque ligne trop longue en plusieurs sous-lignes
+    lines = [
+        raw_line[i:i+MAX_CARACTERES_PAR_LIGNE]
+        for raw_line in raw_lines
+        for i in range(0, len(raw_line), MAX_CARACTERES_PAR_LIGNE)
+    ]
     
-    # Calcule la taille dynamique de la police en fonction du nombre de lignes
-    font_size = min(HAUTEUR_ECRAN // len(lines), LARGEUR_ECRAN // max(len(line) for line in lines))
+    # Calcul dynamique de la taille de police
+    font_size = min(
+        HAUTEUR_ECRAN // len(lines),
+        LARGEUR_ECRAN // MAX_CARACTERES_PAR_LIGNE
+    )
     font = pygame.font.Font(None, font_size)
     
-    # Position initiale pour dessiner le texte
+    # Affichage avec gestion multi-lignes
     y_offset = 0
-    
     for line in lines:
         text_surface = font.render(line, True, (0, 0, 0))
         ecran.blit(text_surface, (50, y_offset))
-        y_offset += font_size  # Pas d'interligne, chaque ligne est directement sous la précédente
+        y_offset += font_size
 
 
 
