@@ -10,19 +10,18 @@ import json
 import inspect
 import os
 
-# Initialisation de Pygame
-pygame.init()
-# Création de la fenÃªtre
-ecran = pygame.display.set_mode((LARGEUR_ECRAN, HAUTEUR_ECRAN))
-pygame.display.set_caption("Minecraft 1.0")
-clock = pygame.time.Clock()
-
 # Définition des constantes
 LARGEUR_ECRAN = 1200
 HAUTEUR_ECRAN = 600
 LARGEUR_MAP, HAUTEUR_MAP = 10, 10
 TAILLE_PIXEL = 50
 
+# Initialisation de Pygame
+pygame.init()
+# Création de la fenÃªtre
+ecran = pygame.display.set_mode((LARGEUR_ECRAN, HAUTEUR_ECRAN))
+pygame.display.set_caption("Minecraft 1.0")
+clock = pygame.time.Clock()
 class Entity:
     def __init__(self, species: str, id: int, coords: Dict[str, int], hearts: int, strength_attack: int, loot: List[str], hostility: bool, xp: int, speed: float):
         self.species = species
