@@ -12,14 +12,16 @@ import os
 
 # Initialisation de Pygame
 pygame.init()
+# Création de la fenÃªtre
+ecran = pygame.display.set_mode((LARGEUR_ECRAN, HAUTEUR_ECRAN))
+pygame.display.set_caption("Minecraft 1.0")
+clock = pygame.time.Clock()
 
 # Définition des constantes
 LARGEUR_ECRAN = 1200
 HAUTEUR_ECRAN = 600
 LARGEUR_MAP, HAUTEUR_MAP = 10, 10
 TAILLE_PIXEL = 50
-
-
 
 class Entity:
     def __init__(self, species: str, id: int, coords: Dict[str, int], hearts: int, strength_attack: int, loot: List[str], hostility: bool, xp: int, speed: float):
@@ -67,11 +69,25 @@ class Item:
         self.x = x
         self.y = y
         self.name = name
+        self.mangeable = {
+            'pork': {"gain": 5.0, "poison_time": 0},
+            'cooked_pork': {"gain": 10.0, "poison_time": 0},
+            'mouton_cru': {"gain": 5.0, "poison_time": 0},
+            'cooked_mouton': {"gain": 10.0, "poison_time": 0},
+            'rotten_flesh': {"gain": 5.0, "poison_time": 2}
+        }
     
     def dessiner(self, decalage_x: float, decalage_y: float):
         x_drop = int(self.x - decalage_x) + (LARGEUR_ECRAN // 2)
         y_drop = int(self.y - decalage_y) + (HAUTEUR_ECRAN // 2)
         ecran.blit(image(self.name), (x_drop, y_drop))
+    
+    def is_mangeable(self):
+        return self.name in self.mangeable.items()
+    
+    def mangeable_infos(self):
+        return self.mangeable[self.name]
+
 
 
 class Player:
@@ -191,13 +207,6 @@ CONSTANTES = {
 }
 
 
-mangeable = {
-    'pork': [5.0, 0],
-    'cooked_pork': [10.0, 0],
-    'mouton_cru': [5.0, 0],
-    'cooked_mouton': [10.0, 0],
-    'rotten_flesh': [5.0, 2]
-}
 
 modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
@@ -268,11 +277,6 @@ def image(texte):
         image_cache[texte] = pygame.transform.scale(image_cache[texte], (TAILLE_PIXEL, TAILLE_PIXEL))
     # Redimensionner l'image Ã  la taille du bloc
     return image_cache[texte]
-
-# Création de la fenÃªtre
-ecran = pygame.display.set_mode((LARGEUR_ECRAN, HAUTEUR_ECRAN))
-pygame.display.set_caption("Minecraft 1.0")
-clock = pygame.time.Clock()
 
 def verifier_collision(x: float, y: float) -> bool:
     # Convertir les coordonnées en indices de la grille
