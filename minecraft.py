@@ -33,6 +33,34 @@ class Entity:
         self.xp = xp
         self.speed = speed
     
+    def deplacer(self, player_x: float, player_y: float):
+        SPEED = self.speed  # Utilisation de la vitesse de l'instance du mob       
+            
+        # Calculer la direction vers le joueur
+        dx = player_x - self.coords['x']
+        dy = player_y - self.coords['y']
+        
+        centre_x = self.coords['x'] + (TAILLE_PIXEL / 2)
+        centre_y = self.coords['y'] + (TAILLE_PIXEL / 2)
+        
+        # Déplacement horizontal
+        if dx > 0 or not bloc_pos(centre_x + SPEED, centre_y) in CONSTANTES["solides"]:
+            self.coords['x'] += SPEED
+        elif dx < 0 or not bloc_pos(centre_x - SPEED, centre_y) in CONSTANTES["solides"]:
+           self.coords['x'] -= SPEED
+        
+        # Déplacement vertical
+        if dy > 0 or not bloc_pos(centre_x, centre_y + SPEED) in CONSTANTES["solides"]:
+            self.coords['y'] += SPEED
+        elif dy < 0 or not bloc_pos(centre_x, centre_y - SPEED) in CONSTANTES["solides"]:
+            self.coords['y'] -= SPEED
+
+        # Débogage : Afficher les valeurs intermédiaires
+        #print(f"Player position: ({x}, {y})")
+        #print(f"dx: {dx}, dy: {dy}")
+        #print(f"New mob position: ({mob.coords['x']}, {mob.coords['y']})")
+        #print(mob)
+    
 
 class Item:
     def __init__(self, name: str, x: float, y: float):
@@ -180,36 +208,7 @@ case_inventaire = 1
 
 def modify_pos_mob(mobs: list, x: float, y: float, TAILLE_PIXEL: int, tick: int) -> list:
     for mob in mobs:
-        SPEED = mob.speed  # Utilisation de la vitesse de l'instance du mob
-        
-        # Convertir les coordonnées du joueur en unités de la grille
-        player_x, player_y = x, y
-        
-            
-        # Calculer la direction vers le joueur
-        dx = player_x - mob.coords['x']
-        dy = player_y - mob.coords['y']
-        
-        centre_x = mob.coords['x'] + (TAILLE_PIXEL / 2)
-        centre_y = mob.coords['y'] + (TAILLE_PIXEL / 2)
-        
-        # Déplacement horizontal
-        if dx > 0 or not bloc_pos(centre_x + SPEED, centre_y) in CONSTANTES["solides"]:
-            mob.coords['x'] += SPEED
-        elif dx < 0 or not bloc_pos(centre_x - SPEED, centre_y) in CONSTANTES["solides"]:
-           mob.coords['x'] -= SPEED
-        
-        # Déplacement vertical
-        if dy > 0 or not bloc_pos(centre_x, centre_y + SPEED) in CONSTANTES["solides"]:
-            mob.coords['y'] += SPEED
-        elif dy < 0 or not bloc_pos(centre_x, centre_y - SPEED) in CONSTANTES["solides"]:
-            mob.coords['y'] -= SPEED
-
-        # Débogage : Afficher les valeurs intermédiaires
-        #print(f"Player position: ({x}, {y})")
-        #print(f"dx: {dx}, dy: {dy}")
-        #print(f"New mob position: ({mob.coords['x']}, {mob.coords['y']})")
-        #print(mob)
+        mob.deplacer(player.x, player.y)
     return mobs
 
 
