@@ -34,11 +34,16 @@ class Entity:
         self.speed = speed
     
 
-@dataclass
 class Item:
-    x: float
-    y: float
-    name: str
+    def __init__(self, name: str, x: float, y: float):
+        self.x = x
+        self.y = y
+        self.name = name
+    
+    def dessiner(self, decalage_x: float, decalage_y: float):
+        x_drop = int(self.x - decalage_x) + (LARGEUR_ECRAN // 2)
+        y_drop = int(self.y - decalage_y) + (HAUTEUR_ECRAN // 2)
+        ecran.blit(image(self.name), (x_drop, y_drop))
 
 
 class Player:
@@ -74,6 +79,7 @@ class Player:
     
     def is_dead(self):
         return self.life <= 0
+
 class Tile:
     def __init__(self, name, data):
         self.name = name
@@ -143,7 +149,7 @@ mobs = [
     Entity(species="zombie", id=0, coords={"x": 0, "y": 0}, hearts=10, strength_attack=1, loot=["rotten_flesh"], hostility=True, xp=10, speed=TAILLE_PIXEL),
 ]
 
-
+drops = [Item("bois", 0.5 * TAILLE_PIXEL, 6.0 * TAILLE_PIXEL)]
 
 
 
@@ -165,7 +171,6 @@ mangeable = {
     'rotten_flesh': [5.0, 2]
 }
 
-drops = []
 modify_bloc_to_item = {
     'verre2': 'inventaire_vide',
     'verre1': 'verre2'
@@ -321,12 +326,10 @@ def dessiner_mobs():
         draw_health_bar(ecran, bar_x, bar_y, mob.hearts, (bar_height//2), bar_width, bar_height)
     
 
-def dessiner_drops(drops: list) -> None:
+def dessiner_drops(drops: list, decalage_x: float, decalage_y: float) -> None:
     # Dessin des drops
     for drop in drops:
-        x_drop = int(drop.x - decalage_x)
-        y_drop = int(drop.y - decalage_y)
-        ecran.blit(image(drop.name), (x_drop, y_drop))
+        drop.dessiner(decalage_x, decalage_y)
 
 def dessiner_hotbar(case_inventaire: list, inventaire: list) -> None:
     largeur_totale = CONSTANTES["nombre_cases_hotbar"] * TAILLE_PIXEL
@@ -613,7 +616,7 @@ while running:
     dessiner_mobs()
     
     # Dessiner les drops
-    dessiner_drops(drops)
+    dessiner_drops(drops, player.x, player.y)
     
     # Dessiner le joueur
     pygame.draw.rect(ecran, Couleurs["JOUEUR"], (LARGEUR_ECRAN // 2, HAUTEUR_ECRAN // 2, TAILLE_PIXEL, TAILLE_PIXEL))
