@@ -118,6 +118,23 @@ class GameMap:
                 if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
                     ecran.blit(image(self.world[y][x].name), (bloc_x, bloc_y))
 
+class TextUtils:
+    def compresser(self, texte: str) -> str:
+        # Compresser le texte en utilisant zlib
+        donnees_compressees = zlib.compress(texte.encode('utf-8'))
+        # Encoder les données compressées en Base64 pour garantir des caractères imprimables
+        donnees_base64 = base64.b64encode(donnees_compressees)
+        # Convertir les données encodées en une chaîne de caractères
+        return donnees_base64.decode('utf-8')
+    
+    def decompresser(self, texte_compresse: str) -> str:
+        # Décoder le texte compressé de Base64
+        donnees_base64 = base64.b64decode(texte_compresse.encode('utf-8'))
+        # Décompresser les données en utilisant zlib
+        donnees_decompressees = zlib.decompress(donnees_base64)
+        # Convertir les données décompressées en une chaîne de caractères
+        return donnees_decompressees.decode('utf-8')
+
         
 player = Player()
 
@@ -139,21 +156,6 @@ CONSTANTES = {
     'nombre_cases_inventaire': 27
 }
 
-def compresser(texte: str) -> str:
-    # Compresser le texte en utilisant zlib
-    donnees_compressees = zlib.compress(texte.encode('utf-8'))
-    # Encoder les données compressées en Base64 pour garantir des caractères imprimables
-    donnees_base64 = base64.b64encode(donnees_compressees)
-    # Convertir les données encodées en une chaîne de caractères
-    return donnees_base64.decode('utf-8')
-
-def decompresser(texte_compresse: str) -> str:
-    # Décoder le texte compressé de Base64
-    donnees_base64 = base64.b64decode(texte_compresse.encode('utf-8'))
-    # Décompresser les données en utilisant zlib
-    donnees_decompressees = zlib.decompress(donnees_base64)
-    # Convertir les données décompressées en une chaîne de caractères
-    return donnees_decompressees.decode('utf-8')
 
 mangeable = {
     'pork': [5.0, 0],
