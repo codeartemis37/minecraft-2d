@@ -74,6 +74,10 @@ class Player:
     
     def is_dead(self):
         return self.life <= 0
+class Tile:
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
 
 class GameMap:
     def __init__(self):
@@ -81,25 +85,25 @@ class GameMap:
 
     def generate(self):
         # Initialisation de la carte avec des 'air'
-        self.world = [['air' for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
+        self.world = [[Tile('air', {}) for _ in range(LARGEUR_MAP)] for __ in range(HAUTEUR_MAP)]
         # Ajout des bordures
         for i in range(HAUTEUR_MAP):
-            self.world[i][0] = 'bordure'
-            self.world[i][-1] = 'bordure'
-            self.world[0][i] = 'bordure'
-            self.world[-1][i] = 'bordure'
+            self.world[i][0] = Tile('bordure', {})
+            self.world[i][-1] = Tile('bordure', {})
+            self.world[0][i] = Tile('bordure', {})
+            self.world[-1][i] = Tile('bordure', {})
         # Stuff de base
-        self.world[1][1:4] = ['coffre', 'etabli', 'furnace']
+        self.world[1][1:4] = [Tile('coffre', {}), Tile('etabli', {}), Tile('furnace', {})]
         # Arbre
         def arbre(x, y):
-            self.world[y+1][x] = 'bois'
-            self.world[y][x] = 'bois'
-            self.world[y-1][x] = 'bois'
-            self.world[y-2][x] = 'bois'
-            self.world[y-2][x-1] = 'leaves'
-            self.world[y-2][x] = 'leaves'
-            self.world[y-2][x+1] = 'leaves'
-            self.world[y-3][x] = 'leaves'
+            self.world[y+1][x] = Tile('bois', {})
+            self.world[y][x] = Tile('bois', {})
+            self.world[y-1][x] = Tile('bois', {})
+            self.world[y-2][x] = Tile('bois', {})
+            self.world[y-2][x-1] = Tile('leaves', {})
+            self.world[y-2][x] = Tile('leaves', {})
+            self.world[y-2][x+1] = Tile('leaves', {})
+            self.world[y-3][x] = Tile('leaves', {})
         arbre(6, 5)
 
     # Permet d'accéder à la carte comme à une liste : game_map[y][x]
@@ -112,7 +116,7 @@ class GameMap:
                 bloc_x = x * TAILLE_PIXEL - int(decalage_x) + (LARGEUR_ECRAN // 2)
                 bloc_y = y * TAILLE_PIXEL - int(decalage_y) + (HAUTEUR_ECRAN // 2)
                 if -TAILLE_PIXEL <= bloc_x < LARGEUR_ECRAN and -TAILLE_PIXEL <= bloc_y < HAUTEUR_ECRAN:
-                    ecran.blit(image(self.world[y][x]), (bloc_x, bloc_y))
+                    ecran.blit(image(self.world[y][x].name), (bloc_x, bloc_y))
 
         
 player = Player()
@@ -228,7 +232,6 @@ def cuire(valeur_recherchee: str) -> str:
 
 game_map = GameMap()
 game_map.generate()
-print(game_map.world)
 
 
 
@@ -279,7 +282,7 @@ def bloc_pos(x: float, y: float) -> str:
     grid_x = int(x // TAILLE_PIXEL)
     grid_y = int(y // TAILLE_PIXEL)
     try:
-        return game_map[grid_y][grid_x]
+        return game_map[grid_y][grid_x].name
     except:
         raise IndexError(f"error: return game_map[{grid_y}][{grid_x}] in bloc_pos()")
 
